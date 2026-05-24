@@ -1,0 +1,4 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body{background:#fff8ec;color:#1c1917} input{font-size:16px}@media print{.no-print{display:none!important}body{background:white}.print-card{display:block!important}}

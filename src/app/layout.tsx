@@ -1,0 +1,8 @@
+import type {Metadata,Viewport} from 'next';
+import {Analytics} from '@vercel/analytics/next';
+import Link from 'next/link';
+import './globals.css';
+export const metadata:Metadata={metadataBase:new URL('https://doughmath.ymirtool.com'),title:{default:'DoughMath | Bread & Sourdough Calculator',template:'%s'},description:"Calculate baker's percentages, sourdough hydration, starter feedings, dough scaling, and pizza dough weights in grams.",alternates:{canonical:'/'},openGraph:{type:'website',title:'DoughMath | Bread & Sourdough Calculator',description:'Browser-only bread formula calculators for home bakers.'}};
+export const viewport:Viewport={width:'device-width',initialScale:1};
+const links=['bakers-percentage-calculator','sourdough-hydration-calculator','starter-feeding-calculator','dough-scaling-calculator','pizza-dough-calculator'];
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><header className="no-print border-b bg-white"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4"><Link href="/" className="text-xl font-bold text-dough-900">DoughMath</Link><nav className="flex flex-wrap gap-3 text-sm">{links.map(l=><Link className="text-stone-700 hover:text-dough-700" key={l} href={`/${l}`}>{l.replaceAll('-',' ').replace('calculator','')}</Link>)}</nav></div></header>{children}<footer className="no-print mt-16 border-t bg-white"><div className="mx-auto grid max-w-6xl gap-4 px-4 py-8 text-sm text-stone-600 sm:grid-cols-3"><p>DoughMath calculates bread formulas locally in your browser.</p><Link href="/about">About</Link><Link href="/privacy">Privacy</Link><Link href="/disclaimer">Disclaimer</Link></div></footer><Analytics/></body></html>}
