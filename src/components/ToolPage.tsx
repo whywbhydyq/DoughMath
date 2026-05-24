@@ -5,10 +5,11 @@ import { Suspense } from 'react';
 import Calculator from '@/components/Calculator';
 import { AdSlot } from '@/components/layout/AdSlot';
 import { AffiliatePanel } from '@/components/layout/AffiliatePanel';
+import { BreadcrumbJsonLd, WebApplicationJsonLd } from '@/components/seo/JsonLd';
 import { BASE_URL, getToolPage, getToolPageOrThrow, toolPages } from '@/lib/pageData';
 
 export function generateStaticParams() {
-  return toolPages.map((page) => ({ slug: page.slug }));
+  return toolPages.filter((page) => !page.isLongTail).map((page) => ({ slug: page.slug }));
 }
 
 export function metadataForTool(slug: string): Metadata {
@@ -35,6 +36,8 @@ export function ToolPage({ slug }: { slug: string }) {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
+      <BreadcrumbJsonLd page={page} />
+      <WebApplicationJsonLd page={page} />
       <section className="mx-auto max-w-3xl text-center">
         <p className="text-sm font-semibold uppercase tracking-widest text-dough-700">DoughMath calculator</p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">{page.h1}</h1>
@@ -44,7 +47,7 @@ export function ToolPage({ slug }: { slug: string }) {
 
       <div className="mt-8">
         <Suspense fallback={<p>Loading calculator…</p>}>
-          <Calculator slug={slug} defaultInputs={page.defaultInputs} />
+          <Calculator calculatorType={page.calculatorType} slug={slug} defaultInputs={page.defaultInputs} />
         </Suspense>
       </div>
 
