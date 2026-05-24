@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { parseNumberParam, readEnumParam } from '@/lib/urlState';
+import { buildShareUrl, readNumberParam } from '@/lib/urlState';
 
-describe('url helpers', () => {
-  it('uses fallback for invalid numbers', () => {
-    const params = new URLSearchParams('flour=500&bad=abc');
-    expect(parseNumberParam(params, 'flour', 100)).toBe(500);
-    expect(parseNumberParam(params, 'bad', 100)).toBe(100);
+describe('url state helpers', () => {
+  it('reads safe numeric params', () => {
+    const params = new URLSearchParams('hyd=75&bad=abc&empty=');
+    expect(readNumberParam(params, 'hyd', 70)).toBe(75);
+    expect(readNumberParam(params, 'bad', 70)).toBe(70);
+    expect(readNumberParam(params, 'empty', 70)).toBe(70);
   });
 
-  it('uses fallback for invalid enum values', () => {
-    const params = new URLSearchParams('mode=target&lev=invalid');
-    expect(readEnumParam(params, 'mode', ['target', 'flour'] as const, 'flour')).toBe('target');
-    expect(readEnumParam(params, 'lev', ['yeast', 'sourdough'] as const, 'yeast')).toBe('yeast');
+  it('builds share URLs only from allowed keys', () => {
+    const url = buildShareUrl('/dough-scaling-calculator', { hyd: 75, starter: 20, note: 'private' });
+    expect(url).toContain('hyd=75');
+    expect(url).toContain('starter=20');
+    expect(url).not.toContain('note=');
   });
 });

@@ -1,16 +1,5 @@
-export function parseNumberParam(params: URLSearchParams, key: string, fallback: number, min = 0): number {
-  const value = Number(params.get(key));
-  return Number.isFinite(value) && value >= min ? value : fallback;
-}
-
-export function setUrlState(values: Record<string, string | number>) {
-  if (typeof window === 'undefined') return;
-  const url = new URL(window.location.href);
-  Object.entries(values).forEach(([key, value]) => url.searchParams.set(key, String(value)));
-  window.history.replaceState(null, '', `${url.pathname}?${url.searchParams.toString()}`);
-}
-
-export function readEnumParam<T extends string>(params: URLSearchParams, key: string, allowed: readonly T[], fallback: T): T {
-  const value = params.get(key);
-  return allowed.includes(value as T) ? (value as T) : fallback;
-}
+export type QueryValue = string | number | boolean;
+export type QueryBag = Record<string, QueryValue | undefined>;
+export const queryKeys = ['bakerMode','flour','hyd','starter','salt','water','sh','saltg','bpWater','bpStarter','bpSalt','bpOil','bpSugar','customCount','customPct1','customWeight1','customPct2','customWeight2','customPct3','customWeight3','target','loaves','count','ball','oil','sugar','yeast','seed','flourpart','waterpart','extra','mode','lev','unit'];
+export function readNumberParam(params: URLSearchParams, key: string, fallback: number) { const raw = params.get(key); if (raw === null || raw === '') return fallback; const value = Number(raw); return Number.isFinite(value) && value >= 0 ? value : fallback; }
+export function buildShareUrl(pathname: string, state: QueryBag, keys = queryKeys) { const params = new URLSearchParams(); keys.forEach((key) => { const value = state[key]; if (value !== undefined && value !== '') params.set(key, String(value)); }); const qs = params.toString(); return qs ? `${pathname}?${qs}` : pathname; }
