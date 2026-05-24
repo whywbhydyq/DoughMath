@@ -1,0 +1,1 @@
+export function AdSlot(){return <aside className="no-print rounded-2xl border border-dashed border-stone-300 bg-stone-50 p-4 text-center text-sm text-stone-500">AdSense placeholder. Ads are intentionally kept outside inputs, calculate controls, result tables, and print output.</aside>}
