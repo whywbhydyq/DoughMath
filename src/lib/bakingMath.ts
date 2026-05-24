@@ -3,6 +3,7 @@ export type Warn = FormulaWarning;
 export type { Ingredient } from '@/types/baking';
 export const round = (value: number, digits = 1) => Math.round(value * 10 ** digits) / 10 ** digits;
 export const pct = (value: number) => `${round(value)}%`;
+export const grams = (value: number) => `${Math.round(value)} g`;
 function assertPositive(name: string, value: number) { if (!Number.isFinite(value) || value <= 0) throw new Error(`${name} must be greater than zero.`); }
 function splitStarter(starterWeightGrams: number, starterHydrationPct: number): StarterSplit { assertPositive('starter hydration', starterHydrationPct); const flourGrams = starterWeightGrams / (1 + starterHydrationPct / 100); return { flourGrams, waterGrams: starterWeightGrams - flourGrams, hydrationPct: starterHydrationPct }; }
 function warnings(hydrationPct: number, saltPct: number, starterPct = 0): Warn[] { const out: Warn[] = []; if (hydrationPct < 55) out.push({ code: 'low-hydration', message: 'Hydration is low; expect a stiffer dough.' }); if (hydrationPct > 85) out.push({ code: 'high-hydration', message: 'Hydration is high; expect a wetter dough.' }); if (saltPct > 3) out.push({ code: 'high-salt', message: 'Salt percentage is high for most bread formulas.' }); if (starterPct > 40) out.push({ code: 'high-starter', message: 'Starter percentage is high; fermentation may move quickly.' }); return out; }
