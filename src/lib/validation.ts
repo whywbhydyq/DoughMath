@@ -1,24 +1,17 @@
 import type { FormulaWarning } from '@/types/baking';
-
-export type CheckResult = { ok: boolean; message?: string };
-export const requiredPositive = (value: number, label: string): CheckResult => Number.isFinite(value) && value > 0 ? { ok: true } : { ok: false, message: `${label} must be greater than 0.` };
-export const requiredNonNegative = (value: number, label: string): CheckResult => Number.isFinite(value) && value >= 0 ? { ok: true } : { ok: false, message: `${label} must be 0 or greater.` };
-export const isValidRatio = (seed: number, flour: number, water: number) => [seed, flour, water].every((value) => Number.isFinite(value) && value > 0);
-
-export function formulaWarnings(input: { hydrationPct?: number; saltPct?: number; starterPct?: number; starterHydrationPct?: number; targetWeightGrams?: number; pizzaBallWeightGrams?: number }): FormulaWarning[] {
+export type CheckResult = { valid: boolean; error?: string };
+export const requiredPositive = (label: string, value: number): CheckResult => Number.isFinite(value) && value > 0 ? { valid: true } : { valid: false, error: `${label} must be greater than zero.` };
+export const requiredNonNegative = (label: string, value: number): CheckResult => Number.isFinite(value) && value >= 0 ? { valid: true } : { valid: false, error: `${label} must not be negative.` };
+export const isValidRatio = (...parts: number[]) => parts.every((part) => Number.isFinite(part) && part > 0);
+export const formulaWarnings = (input: { hydrationPct?: number; saltPct?: number; starterPct?: number; starterHydrationPct?: number; pizzaBallGrams?: number; totalDoughGrams?: number }) => {
   const out: FormulaWarning[] = [];
-  const hydration = input.hydrationPct ?? 0;
-  const salt = input.saltPct ?? 0;
-  const starter = input.starterPct ?? 0;
-  const starterHydration = input.starterHydrationPct ?? 100;
-  if (hydration > 0 && hydration < 40) out.push({ code: 'low-hydration', message: 'This is a very stiff dough. Check whether the hydration value is intended.', severity: 'warning' });
-  if (hydration > 100) out.push({ code: 'high-hydration', message: 'This is a very high-hydration dough and may be difficult to handle.', severity: 'warning' });
-  if (salt > 4) out.push({ code: 'high-salt', message: 'Salt above 4% is unusually high for most bread formulas.', severity: 'warning' });
-  if (starter > 60) out.push({ code: 'high-starter', message: 'A high starter percentage can speed fermentation significantly.', severity: 'warning' });
-  if (starterHydration !== 100) out.push({ code: 'custom-starter-hydration', message: 'Starter has been split using your custom hydration setting.', severity: 'info' });
-  if ((input.targetWeightGrams ?? 0) > 10000) out.push({ code: 'large-batch', message: 'Large batch. Check scale capacity and mixing method.', severity: 'warning' });
-  const ball = input.pizzaBallWeightGrams ?? 0;
-  if (ball > 0 && ball < 120) out.push({ code: 'small-pizza-ball', message: 'This is a small dough ball. Check pizza size.', severity: 'warning' });
-  if (ball > 500) out.push({ code: 'large-pizza-ball', message: 'This is a large dough ball. Check pizza size and style.', severity: 'warning' });
+  if ((input.hydrationPct ?? 0) < 55) out.push({ code: 'low-hydration', message: 'Hydration is low.' });
+  if ((input.hydrationPct ?? 0) > 85) out.push({ code: 'high-hydration', message: 'Hydration is high.' });
+  if ((input.saltPct ?? 0) > 3) out.push({ code: 'high-salt', message: 'Salt percentage is high.' });
+  if ((input.starterPct ?? 0) > 40) out.push({ code: 'high-starter', message: 'Starter percentage is high.' });
   return out;
-}
+};
+export const isPositiveFinite = (value: number) => Number.isFinite(value) && value > 0;
+export function assertPositiveFinite(label: string, value: number) { if (!isPositiveFinite(value)) throw new Error(`${label} must be greater than zero.`); }
+export function assertNonNegativeFinite(label: string, value: number) { if (!Number.isFinite(value) || value < 0) throw new Error(`${label} must not be negative.`); }
+export const warning = (code: string, message: string): FormulaWarning => ({ code, message });

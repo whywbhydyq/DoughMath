@@ -2,6 +2,8 @@
 
 DoughMath is a mobile-first English baking calculator site for baker's percentages, sourdough hydration, starter feeding, dough scaling, and pizza dough formulas.
 
+Production domain: https://doughmath.ymirtool.com
+
 ## MVP
 
 - Baker's Percentage Calculator
@@ -14,7 +16,7 @@ DoughMath is a mobile-first English baking calculator site for baker's percentag
 - target dough weight reverse calculation
 - loaf count and pizza count batch calculations
 - copy result, print recipe card, share URL state
-- About, Privacy, Disclaimer, sitemap, robots, canonical metadata
+- About, Privacy, Terms, Disclaimer, Contact, sitemap, robots, ads.txt, canonical metadata
 
 No login, uploads, cloud recipe storage, AI recipe generation, recipe library, nutrition advice, or fermentation prediction.
 
@@ -22,6 +24,8 @@ No login, uploads, cloud recipe storage, AI recipe generation, recipe library, n
 
 ```bash
 npm install
+npm run typecheck
 npm run test
 npm run build
+npm run dev
 ```
