@@ -44,7 +44,7 @@ export function ToolPage({ slug }: { slug: string }) {
 
       <div className="mt-8">
         <Suspense fallback={<p>Loading calculator…</p>}>
-          <Calculator slug={slug} />
+          <Calculator slug={slug} defaultInputs={page.defaultInputs} />
         </Suspense>
       </div>
 

@@ -1,15 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { calculateBakersPercentage, calculateDoughScaling, calculatePizzaDough, calculateSourdoughHydration, calculateStarterFeeding, splitStarterByHydration } from '@/lib/bakingMath';
+import { calculateBakersPercentage, calculateBakersPercentagesFromWeights, calculateDoughScaling, calculatePizzaDough, calculateSourdoughHydration, calculateStarterFeeding, splitStarterByHydration } from '@/lib/bakingMath';
 
 const close = (actual: number, expected: number) => expect(actual).toBeCloseTo(expected, 1);
 
 describe('DoughMath formulas', () => {
-  it('calculates baker percentages', () => {
+  it('calculates baker percentages from percentage inputs', () => {
     const result = calculateBakersPercentage({ flourWeightGrams: 500, hydrationPct: 75, starterPct: 20, saltPct: 2 });
     close(result.waterGrams, 375);
     close(result.starterWeightGrams, 100);
     close(result.saltGrams, 10);
     close(result.totalDoughWeightGrams, 985);
+    close(result.totalFormulaPct, 197);
+  });
+
+  it('calculates baker percentages from ingredient weights', () => {
+    const result = calculateBakersPercentagesFromWeights({ flourWeightGrams: 500, waterWeightGrams: 375, starterWeightGrams: 100, saltWeightGrams: 10 });
+    close(result.totalDoughWeightGrams, 985);
+    close(result.totalFormulaPct, 197);
+    expect(result.ingredients.find((item) => item.name === 'Water')?.bakerPercentage).toBeCloseTo(75, 1);
+    expect(result.ingredients.find((item) => item.name === 'Starter')?.bakerPercentage).toBeCloseTo(20, 1);
+    expect(result.ingredients.find((item) => item.name === 'Salt')?.bakerPercentage).toBeCloseTo(2, 1);
   });
 
   it('splits starter hydration', () => {

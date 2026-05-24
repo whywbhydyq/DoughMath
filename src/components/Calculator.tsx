@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   calculateBakersPercentage,
+  calculateBakersPercentagesFromWeights,
   calculateDoughScaling,
   calculatePizzaDough,
   calculateSourdoughHydration,
@@ -15,7 +16,10 @@ import {
 import { trackCalculatorEvent } from '@/lib/analytics';
 import { formatWeight, type WeightUnit } from '@/lib/units';
 
+type DefaultInputs = Record<string, number | string>;
+
 type State = {
+  bakerMode: 'percentages' | 'weights';
   flour: number;
   hyd: number;
   starter: number;
@@ -23,6 +27,11 @@ type State = {
   water: number;
   sh: number;
   saltg: number;
+  bpWater: number;
+  bpStarter: number;
+  bpSalt: number;
+  bpOil: number;
+  bpSugar: number;
   target: number;
   loaves: number;
   count: number;
@@ -39,7 +48,8 @@ type State = {
   unit: WeightUnit;
 };
 
-const defaults: State = {
+const baseDefaults: State = {
+  bakerMode: 'percentages',
   flour: 500,
   hyd: 75,
   starter: 20,
@@ -47,6 +57,11 @@ const defaults: State = {
   water: 350,
   sh: 100,
   saltg: 10,
+  bpWater: 375,
+  bpStarter: 100,
+  bpSalt: 10,
+  bpOil: 0,
+  bpSugar: 0,
   target: 1500,
   loaves: 2,
   count: 3,
@@ -63,14 +78,23 @@ const defaults: State = {
   unit: 'g'
 };
 
+function mergedDefaults(defaultInputs?: DefaultInputs): State {
+  return { ...baseDefaults, ...defaultInputs } as State;
+}
+
 function readNumber(params: URLSearchParams, key: keyof State, fallback: number) {
   const value = Number(params.get(key));
   return Number.isFinite(value) && value >= 0 ? value : fallback;
 }
 
-function readUnit(params: URLSearchParams): WeightUnit {
+function readUnit(params: URLSearchParams, fallback: WeightUnit): WeightUnit {
   const unit = params.get('unit');
-  return unit === 'oz' || unit === 'lb' ? unit : 'g';
+  return unit === 'oz' || unit === 'lb' || unit === 'g' ? unit : fallback;
+}
+
+function readBakerMode(params: URLSearchParams, fallback: 'percentages' | 'weights') {
+  const value = params.get('bakerMode');
+  return value === 'weights' || value === 'percentages' ? value : fallback;
 }
 
 function Field(props: { label: string; value: number; set: (next: number) => void; unit: string; step?: number; min?: number; helper?: string }) {
@@ -147,10 +171,12 @@ function Presets({ set }: { set: (key: keyof State, value: number | string) => v
   return <div className="no-print flex flex-wrap gap-2">{presets.map(([label, seed, flour, water]) => <button key={label} type="button" className="rounded-full border bg-white px-3 py-1 text-sm" onClick={() => { set('seed', seed); set('flourpart', flour); set('waterpart', water); }}>{label}</button>)}</div>;
 }
 
-function useCalculatorState(slug: string) {
+function useCalculatorState(slug: string, defaultInputs?: DefaultInputs) {
   const params = useSearchParams();
+  const defaults = mergedDefaults(defaultInputs);
   const [state, setState] = useState<State>(() => ({
     ...defaults,
+    bakerMode: readBakerMode(params, defaults.bakerMode),
     flour: readNumber(params, 'flour', defaults.flour),
     hyd: readNumber(params, 'hyd', defaults.hyd),
     starter: readNumber(params, 'starter', defaults.starter),
@@ -158,6 +184,11 @@ function useCalculatorState(slug: string) {
     water: readNumber(params, 'water', defaults.water),
     sh: readNumber(params, 'sh', defaults.sh),
     saltg: readNumber(params, 'saltg', defaults.saltg),
+    bpWater: readNumber(params, 'bpWater', defaults.bpWater),
+    bpStarter: readNumber(params, 'bpStarter', defaults.bpStarter),
+    bpSalt: readNumber(params, 'bpSalt', defaults.bpSalt),
+    bpOil: readNumber(params, 'bpOil', defaults.bpOil),
+    bpSugar: readNumber(params, 'bpSugar', defaults.bpSugar),
     target: readNumber(params, 'target', defaults.target),
     loaves: readNumber(params, 'loaves', defaults.loaves),
     count: readNumber(params, 'count', defaults.count),
@@ -169,9 +200,9 @@ function useCalculatorState(slug: string) {
     flourpart: readNumber(params, 'flourpart', defaults.flourpart),
     waterpart: readNumber(params, 'waterpart', defaults.waterpart),
     extra: readNumber(params, 'extra', defaults.extra),
-    mode: params.get('mode') === 'flour' ? 'flour' : 'target',
-    lev: params.get('lev') === 'sourdough' ? 'sourdough' : 'yeast',
-    unit: readUnit(params)
+    mode: params.get('mode') === 'flour' || params.get('mode') === 'target' ? (params.get('mode') as 'target' | 'flour') : defaults.mode,
+    lev: params.get('lev') === 'sourdough' || params.get('lev') === 'yeast' ? (params.get('lev') as 'yeast' | 'sourdough') : defaults.lev,
+    unit: readUnit(params, defaults.unit)
   }));
 
   useEffect(() => { trackCalculatorEvent('calculator_view', slug); }, [slug]);
@@ -180,10 +211,14 @@ function useCalculatorState(slug: string) {
   return { state, set };
 }
 
-export default function Calculator({ slug }: { slug: string }) {
-  const { state, set } = useCalculatorState(slug);
+export default function Calculator({ slug, defaultInputs }: { slug: string; defaultInputs?: DefaultInputs }) {
+  const { state, set } = useCalculatorState(slug, defaultInputs);
   const result = useMemo(() => {
-    if (slug === 'bakers-percentage-calculator') return calculateBakersPercentage({ flourWeightGrams: state.flour, hydrationPct: state.hyd, starterPct: state.starter, saltPct: state.salt, oilPct: state.oil, sugarPct: state.sugar });
+    if (slug === 'bakers-percentage-calculator') {
+      return state.bakerMode === 'weights'
+        ? calculateBakersPercentagesFromWeights({ flourWeightGrams: state.flour, waterWeightGrams: state.bpWater, starterWeightGrams: state.bpStarter, saltWeightGrams: state.bpSalt, oilWeightGrams: state.bpOil, sugarWeightGrams: state.bpSugar })
+        : calculateBakersPercentage({ flourWeightGrams: state.flour, hydrationPct: state.hyd, starterPct: state.starter, saltPct: state.salt, oilPct: state.oil, sugarPct: state.sugar });
+    }
     if (slug === 'sourdough-hydration-calculator') return calculateSourdoughHydration({ mainFlourGrams: state.flour, addedWaterGrams: state.water, starterWeightGrams: state.starter, starterHydrationPct: state.sh, saltWeightGrams: state.saltg });
     if (slug === 'starter-feeding-calculator') return calculateStarterFeeding({ targetStarterWeightGrams: state.target, seedPart: state.seed, flourPart: state.flourpart, waterPart: state.waterpart, extraGrams: state.extra });
     if (slug === 'pizza-dough-calculator') return calculatePizzaDough({ pizzaCount: state.count, ballWeightGrams: state.ball, hydrationPct: state.hyd, saltPct: state.salt, oilPct: state.oil, sugarPct: state.sugar, yeastPct: state.yeast, starterPct: state.starter, starterHydrationPct: state.sh, leaveningType: state.lev });
@@ -194,21 +229,22 @@ export default function Calculator({ slug }: { slug: string }) {
   const perUnit = 'perUnit' in result ? (result.perUnit as Ingredient[]) : undefined;
   const total = 'totalDoughWeightGrams' in result ? result.totalDoughWeightGrams : result.totalNeededStarterGrams;
   const hydration = 'totalHydrationPct' in result ? result.totalHydrationPct : undefined;
-  const copyText = `${items.map((item) => `${item.name}: ${formatWeight(item.weightGrams, state.unit)}`).join('\n')}\nTotal: ${formatWeight(total, state.unit)}`;
+  const totalFormulaPct = 'totalFormulaPct' in result ? result.totalFormulaPct : undefined;
+  const copyText = `${items.map((item) => `${item.name}: ${formatWeight(item.weightGrams, state.unit)}${item.bakerPercentage === undefined ? '' : ` (${pct(item.bakerPercentage)})`}`).join('\n')}\nTotal: ${formatWeight(total, state.unit)}`;
 
   return (
     <section className="rounded-3xl border border-amber-100 bg-amber-50 p-4 shadow-sm sm:p-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <SelectField label="Display unit" value={state.unit} set={(value) => set('unit', value)} options={[{ value: 'g', label: 'grams' }, { value: 'oz', label: 'ounces' }, { value: 'lb', label: 'pounds' }]} />
+        {slug === 'bakers-percentage-calculator' ? <><SelectField label="Baker's math mode" value={state.bakerMode} set={(value) => set('bakerMode', value)} options={[{ value: 'percentages', label: 'Weights from percentages' }, { value: 'weights', label: 'Percentages from weights' }]} /><Field label="Total flour weight" value={state.flour} set={(value) => set('flour', value)} unit="g" step={10} />{state.bakerMode === 'weights' ? <><Field label="Water weight" value={state.bpWater} set={(value) => set('bpWater', value)} unit="g" step={10} /><Field label="Starter weight" value={state.bpStarter} set={(value) => set('bpStarter', value)} unit="g" step={10} /><Field label="Salt weight" value={state.bpSalt} set={(value) => set('bpSalt', value)} unit="g" step={1} /><Field label="Oil weight" value={state.bpOil} set={(value) => set('bpOil', value)} unit="g" step={5} /><Field label="Sugar weight" value={state.bpSugar} set={(value) => set('bpSugar', value)} unit="g" step={5} /></> : <><Field label="Hydration" value={state.hyd} set={(value) => set('hyd', value)} unit="%" /><Field label="Starter" value={state.starter} set={(value) => set('starter', value)} unit="%" /><Field label="Salt" value={state.salt} set={(value) => set('salt', value)} unit="%" step={0.1} /><Field label="Oil" value={state.oil} set={(value) => set('oil', value)} unit="%" step={0.5} /><Field label="Sugar" value={state.sugar} set={(value) => set('sugar', value)} unit="%" step={0.5} /></>}</> : null}
         {slug === 'sourdough-hydration-calculator' ? <><Field label="Main flour" value={state.flour} set={(value) => set('flour', value)} unit="g" step={10} /><Field label="Added water" value={state.water} set={(value) => set('water', value)} unit="g" step={10} /><Field label="Starter weight" value={state.starter} set={(value) => set('starter', value)} unit="g" step={10} /><Field label="Starter hydration" value={state.sh} set={(value) => set('sh', value)} unit="%" /><Field label="Salt weight" value={state.saltg} set={(value) => set('saltg', value)} unit="g" /></> : null}
         {slug === 'starter-feeding-calculator' ? <><Field label="Target starter" value={state.target} set={(value) => set('target', value)} unit="g" step={10} /><Field label="Seed part" value={state.seed} set={(value) => set('seed', value)} unit="part" step={0.5} /><Field label="Flour part" value={state.flourpart} set={(value) => set('flourpart', value)} unit="part" step={0.5} /><Field label="Water part" value={state.waterpart} set={(value) => set('waterpart', value)} unit="part" step={0.5} /><Field label="Extra starter" value={state.extra} set={(value) => set('extra', value)} unit="g" step={5} helper="Optional retained extra starter." /></> : null}
         {slug === 'pizza-dough-calculator' ? <><SelectField label="Leavening" value={state.lev} set={(value) => set('lev', value)} options={[{ value: 'yeast', label: 'Yeast' }, { value: 'sourdough', label: 'Sourdough starter' }]} /><Field label="Pizza count" value={state.count} set={(value) => set('count', value)} unit="pizzas" /><Field label="Ball weight" value={state.ball} set={(value) => set('ball', value)} unit="g" step={10} /><Field label="Hydration" value={state.hyd} set={(value) => set('hyd', value)} unit="%" /><Field label="Salt" value={state.salt} set={(value) => set('salt', value)} unit="%" step={0.1} /><Field label="Oil" value={state.oil} set={(value) => set('oil', value)} unit="%" step={0.5} />{state.lev === 'yeast' ? <Field label="Yeast" value={state.yeast} set={(value) => set('yeast', value)} unit="%" step={0.1} /> : <><Field label="Starter" value={state.starter} set={(value) => set('starter', value)} unit="%" /><Field label="Starter hydration" value={state.sh} set={(value) => set('sh', value)} unit="%" /></>}</> : null}
         {slug === 'dough-scaling-calculator' ? <><SelectField label="Calculation mode" value={state.mode} set={(value) => set('mode', value)} options={[{ value: 'target', label: 'Target dough weight' }, { value: 'flour', label: 'Known flour weight' }]} />{state.mode === 'target' ? <Field label="Target dough" value={state.target} set={(value) => set('target', value)} unit="g" step={50} /> : <Field label="Flour weight" value={state.flour} set={(value) => set('flour', value)} unit="g" step={10} />}<Field label="Loaf count" value={state.loaves} set={(value) => set('loaves', value)} unit="loaves" /><Field label="Hydration" value={state.hyd} set={(value) => set('hyd', value)} unit="%" /><Field label="Starter" value={state.starter} set={(value) => set('starter', value)} unit="%" /><Field label="Starter hydration" value={state.sh} set={(value) => set('sh', value)} unit="%" /><Field label="Salt" value={state.salt} set={(value) => set('salt', value)} unit="%" step={0.1} /></> : null}
-        {slug === 'bakers-percentage-calculator' ? <><Field label="Total flour weight" value={state.flour} set={(value) => set('flour', value)} unit="g" step={10} /><Field label="Hydration" value={state.hyd} set={(value) => set('hyd', value)} unit="%" /><Field label="Starter" value={state.starter} set={(value) => set('starter', value)} unit="%" /><Field label="Salt" value={state.salt} set={(value) => set('salt', value)} unit="%" step={0.1} /><Field label="Oil" value={state.oil} set={(value) => set('oil', value)} unit="%" step={0.5} /><Field label="Sugar" value={state.sugar} set={(value) => set('sugar', value)} unit="%" step={0.5} /></> : null}
       </div>
       {slug === 'starter-feeding-calculator' ? <div className="mt-4"><Presets set={set} /></div> : null}
       <div className="mt-6 space-y-5 print-card">
-        <div className="grid gap-3 sm:grid-cols-3"><b className="rounded-2xl border bg-white p-4">Total {formatWeight(total, state.unit)}</b>{hydration ? <b className="rounded-2xl border bg-white p-4">Total hydration {pct(hydration)}</b> : null}</div>
+        <div className="grid gap-3 sm:grid-cols-3"><b className="rounded-2xl border bg-white p-4">Total {formatWeight(total, state.unit)}</b>{hydration ? <b className="rounded-2xl border bg-white p-4">Total hydration {pct(hydration)}</b> : null}{totalFormulaPct ? <b className="rounded-2xl border bg-white p-4">Total formula {pct(totalFormulaPct)}</b> : null}</div>
         <ResultTable title="Ingredient weights" items={items} unit={state.unit} />
         {perUnit ? <ResultTable title="Per loaf / per ball" items={perUnit} unit={state.unit} /> : null}
         <WarningList items={result.warnings ?? []} />

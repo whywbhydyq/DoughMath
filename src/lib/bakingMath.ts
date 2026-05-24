@@ -65,7 +65,24 @@ export function calculateBakersPercentage(input: { flourWeightGrams: number; hyd
   const ingredients = [ingredient('Flour', flour, flour, 'Always 100%'), ingredient('Water', water, flour), ingredient('Starter', starter, flour, 'Starter is treated as total ingredient.'), ingredient('Salt', salt, flour)];
   if (oil) ingredients.push(ingredient('Oil', oil, flour));
   if (sugar) ingredients.push(ingredient('Sugar', sugar, flour));
-  return { ingredients, totalDoughWeightGrams: ingredients.reduce((sum, item) => sum + item.weightGrams, 0), waterGrams: water, starterWeightGrams: starter, saltGrams: salt, warnings: warnings(input.hydrationPct, input.saltPct, input.starterPct) };
+  return { ingredients, totalDoughWeightGrams: ingredients.reduce((sum, item) => sum + item.weightGrams, 0), totalFormulaPct: ingredients.reduce((sum, item) => sum + (item.bakerPercentage ?? 0), 0), waterGrams: water, starterWeightGrams: starter, saltGrams: salt, warnings: warnings(input.hydrationPct, input.saltPct, input.starterPct) };
+}
+
+export function calculateBakersPercentagesFromWeights(input: { flourWeightGrams: number; waterWeightGrams: number; starterWeightGrams?: number; saltWeightGrams?: number; oilWeightGrams?: number; sugarWeightGrams?: number }) {
+  pos(input.flourWeightGrams, 'Flour weight');
+  nonneg(input.waterWeightGrams, 'Water weight');
+  const flour = input.flourWeightGrams;
+  const water = input.waterWeightGrams;
+  const starter = input.starterWeightGrams ?? 0;
+  const salt = input.saltWeightGrams ?? 0;
+  const oil = input.oilWeightGrams ?? 0;
+  const sugar = input.sugarWeightGrams ?? 0;
+  [starter, salt, oil, sugar].forEach((value, index) => nonneg(value, ['Starter weight', 'Salt weight', 'Oil weight', 'Sugar weight'][index]));
+  const ingredients = [ingredient('Flour', flour, flour, 'Always 100%'), ingredient('Water', water, flour), ingredient('Starter', starter, flour, 'Starter is treated as total ingredient.'), ingredient('Salt', salt, flour)];
+  if (oil) ingredients.push(ingredient('Oil', oil, flour));
+  if (sugar) ingredients.push(ingredient('Sugar', sugar, flour));
+  const totalFormulaPct = ingredients.reduce((sum, item) => sum + (item.bakerPercentage ?? 0), 0);
+  return { ingredients, totalDoughWeightGrams: ingredients.reduce((sum, item) => sum + item.weightGrams, 0), totalFormulaPct, waterGrams: water, starterWeightGrams: starter, saltGrams: salt, warnings: warnings(bakerPercentage(water, flour), bakerPercentage(salt, flour), bakerPercentage(starter, flour)) };
 }
 
 export function calculateSourdoughHydration(input: { mainFlourGrams: number; addedWaterGrams: number; starterWeightGrams: number; starterHydrationPct: number; saltWeightGrams: number }) {
