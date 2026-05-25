@@ -1,4 +1,61 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body{background:#fff8ec;color:#1c1917} input{font-size:16px}@media print{.no-print{display:none!important}body{background:white}.print-card{display:block!important}}
+
+:root{
+  --background:#fff8ec;
+  --surface:#ffffff;
+  --raised:#fffaf0;
+  --workspace:#fff4dc;
+  --input:#fffaf0;
+  --result:#fff7e6;
+  --primary:#3d240d;
+  --secondary:#8a4c13;
+  --success:#047857;
+  --warning:#b45309;
+  --danger:#b91c1c;
+  --info:#1d4ed8;
+  --border:#f5d392;
+  --focus:rgba(201,121,31,.34);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(circle at top left,#fff1c8 0,#fff8ec 36%,#fffdf8 100%);color:#1c1917}
+a{color:inherit}
+input,select,textarea,button{font-size:16px}
+button{cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.no-scrollbar::-webkit-scrollbar{display:none}
+.no-scrollbar{scrollbar-width:none}
+
+@media print{
+  .no-print{display:none!important}
+  body{background:white;color:black}
+  main{padding:0!important;max-width:none!important}
+  .print-card{display:block!important}
+  .print-card section,.print-card div{box-shadow:none!important}
+}
+
+.print-only{display:none}
+
+@media print{
+  .print-only{display:block!important}
+  .printable-recipe-card{font-family:Arial,Helvetica,sans-serif;color:#111;max-width:760px;margin:0 auto;padding:0}
+  .print-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:16px;gap:24px}
+  .print-header h2{font-size:24px;line-height:1.15;margin:4px 0 0;font-weight:800}
+  .print-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.14em;margin:0;color:#555;font-weight:700}
+  .print-meta{text-align:right;font-size:12px;color:#444;line-height:1.4}
+  .print-meta p{margin:0 0 3px}
+  .print-section{break-inside:avoid;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid #ddd}
+  .print-section h3{font-size:15px;margin:0 0 8px;font-weight:800}
+  .print-section p{font-size:12px;line-height:1.45;margin:0;color:#333}
+  .print-section table{width:100%;border-collapse:collapse;font-size:12px}
+  .print-section th,.print-section td{border:1px solid #ddd;padding:6px 7px;text-align:left;vertical-align:top}
+  .print-section th:nth-child(2),.print-section td:nth-child(2),.print-section th:nth-child(3),.print-section td:nth-child(3){text-align:right;white-space:nowrap}
+  .print-note{color:#555;font-size:11px}
+  .print-inputs{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin:0;padding-left:16px;font-size:12px;line-height:1.35}
+  .print-totals{display:grid;grid-template-columns:1fr auto;gap:5px 18px;font-size:12px;margin:0}
+  .print-totals dt{color:#555}
+  .print-totals dd{margin:0;text-align:right;font-weight:700}
+}

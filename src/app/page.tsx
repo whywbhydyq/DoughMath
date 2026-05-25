@@ -1,4 +1,29 @@
-import Link from 'next/link';
-const tools=[['bakers-percentage-calculator','Baker\u2019s Percentage Calculator'],['sourdough-hydration-calculator','Sourdough Hydration Calculator'],['starter-feeding-calculator','Starter Feeding Calculator'],['dough-scaling-calculator','Dough Scaling Calculator'],['pizza-dough-calculator','Pizza Dough Calculator']];
-const guides=[['guides/bakers-percentage','How Baker\u2019s Percentage Works'],['guides/total-hydration-vs-added-hydration','Total vs Added Hydration'],['guides/sourdough-starter-feeding-ratios','Starter Feeding Ratios'],['guides/how-to-scale-bread-recipes','How to Scale Bread Recipes'],['guides/why-use-grams-for-bread-baking','Why Use Grams for Baking']];
-export default function Home(){return <main className="mx-auto max-w-6xl px-4 py-12"><section className="mx-auto max-w-3xl text-center"><p className="text-sm font-semibold uppercase tracking-widest text-dough-700">DoughMath</p><h1 className="mt-3 text-5xl font-bold tracking-tight">Bread & Sourdough Calculator</h1><p className="mt-5 text-lg text-stone-600">Calculate baker&apos;s percentages, sourdough hydration, starter feedings, dough scaling, and pizza dough weights in grams.</p><p className="mt-3 text-sm text-stone-500">No login. No uploads. No cloud recipe storage. All calculations run in your browser.</p></section><section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{tools.map(([slug,name])=><Link key={slug} href={`/${slug}`} className="rounded-3xl border bg-white p-6 shadow-sm hover:shadow-md"><h2 className="text-xl font-semibold">{name}</h2><p className="mt-3 text-sm text-stone-600">Open the local calculator, copy results, print a recipe card, and share URL state.</p></Link>)}</section><section className="mt-12 rounded-3xl border bg-white p-6 shadow-sm"><h2 className="text-2xl font-semibold">Baking math guides</h2><p className="mt-2 text-sm text-stone-600">Short explanations for the formulas used by the calculators.</p><div className="mt-4 flex flex-wrap gap-2">{guides.map(([href,label])=><Link key={href} href={`/${href}`} className="rounded-full border px-3 py-1 text-sm hover:bg-stone-50">{label}</Link>)}</div></section></main>}
+import { HomeDirectory } from '@/components/HomeDirectory';
+import { guidePages } from '@/lib/guideData';
+import { toolPages } from '@/lib/pageData';
+
+export default function Home() {
+  const coreSlugs = new Set(['bakers-percentage-calculator', 'sourdough-hydration-calculator', 'starter-feeding-calculator', 'dough-scaling-calculator', 'pizza-dough-calculator']);
+  const items = [
+    ...toolPages.map((page) => ({ href: page.canonicalPath, title: page.h1, description: page.description, type: coreSlugs.has(page.slug) ? 'Core calculator' as const : 'Preset calculator' as const })),
+    ...guidePages.map((page) => ({ href: page.canonicalPath, title: page.h1, description: page.description, type: 'Guide' as const }))
+  ];
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
+      <section className="rounded-[2.25rem] border border-amber-200/80 bg-white/85 p-6 shadow-soft sm:p-8 lg:p-10">
+        <div className="max-w-4xl">
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-dough-700">DoughMath</p>
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-stone-950 sm:text-6xl">Bread & Sourdough Calculator</h1>
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-stone-600">Calculate baker’s percentages, sourdough hydration, starter feedings, dough scaling, and pizza dough weights with printable formula cards.</p>
+          <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold text-stone-600">
+            <span className="rounded-full bg-amber-50 px-3 py-2">Browser-only math</span>
+            <span className="rounded-full bg-amber-50 px-3 py-2">No uploads</span>
+            <span className="rounded-full bg-amber-50 px-3 py-2">Add to Bowl results</span>
+            <span className="rounded-full bg-amber-50 px-3 py-2">Print and share</span>
+          </div>
+        </div>
+      </section>
+      <HomeDirectory items={items} />
+    </main>
+  );
+}

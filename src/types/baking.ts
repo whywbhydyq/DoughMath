@@ -1,7 +1,90 @@
 export type CalculatorType = 'bakers-percentage' | 'sourdough-hydration' | 'starter-feeding' | 'dough-scaling' | 'pizza-dough';
-export type Ingredient = { name: string; weightGrams: number; bakerPercentage?: number; note?: string };
-export type StarterSplit = { flourGrams: number; waterGrams: number; hydrationPct: number };
-export type FormulaWarning = { code: string; message: string };
-export type DoughScalingInput = { mode: 'by-flour-weight' | 'by-target-dough-weight'; flourWeightGrams?: number; targetDoughWeightGrams?: number; loafCount: number; hydrationPct: number; starterPct: number; starterHydrationPct: number; saltPct: number; oilPct?: number; sugarPct?: number; yeastPct?: number };
-export type StarterFeedingInput = { targetStarterWeightGrams: number; seedPart: number; flourPart: number; waterPart: number; extraGrams?: number };
-export type PizzaDoughInput = { pizzaCount: number; ballWeightGrams: number; hydrationPct: number; saltPct: number; oilPct?: number; sugarPct?: number; yeastPct?: number; starterPct?: number; starterHydrationPct?: number; leaveningType: 'yeast' | 'sourdough' };
+export type IngredientRole = 'flour' | 'water' | 'starter' | 'salt' | 'oil' | 'sugar' | 'yeast' | 'seed' | 'other';
+export type CustomIngredientLockMode = 'percentage' | 'weight';
+export type CustomIngredientInput = {
+  id?: string;
+  name: string;
+  lockMode: CustomIngredientLockMode;
+  percentage?: number;
+  weightGrams?: number;
+};
+export type Ingredient = {
+  name: string;
+  weightGrams: number;
+  bakerPercentage?: number;
+  note?: string;
+  role?: IngredientRole;
+};
+export type StarterSplit = {
+  starterWeightGrams: number;
+  flourGrams: number;
+  waterGrams: number;
+  hydrationPct: number;
+};
+export type FormulaWarning = { code: string; message: string; level?: 'info' | 'warning' | 'danger' };
+export type FlourBlendItem = { name: string; percent: number };
+export type FormulaTotals = {
+  totalFlourGrams?: number;
+  totalWaterGrams?: number;
+  totalHydrationPct?: number;
+  addedHydrationPct?: number;
+  saltPct?: number;
+  totalDoughWeightGrams: number;
+  totalFormulaPct?: number;
+};
+export type CalculatorResult = {
+  ingredients: Ingredient[];
+  addToBowl?: Ingredient[];
+  formulaTotals?: FormulaTotals;
+  starterSplit?: StarterSplit;
+  flourBlend?: Ingredient[];
+  perUnit?: Ingredient[];
+  perUnitLabel?: string;
+  warnings: FormulaWarning[];
+  copySections?: { title: string; items: Ingredient[] }[];
+  totalDoughWeightGrams: number;
+  totalNeededStarterGrams?: number;
+  totalHydrationPct?: number;
+  addedHydrationPct?: number;
+  totalFormulaPct?: number;
+  seedStarterGrams?: number;
+  feedingFlourGrams?: number;
+  feedingWaterGrams?: number;
+  finalStarterWeightGrams?: number;
+  starterForRecipeGrams?: number;
+  retainedExtraStarterGrams?: number;
+};
+export type DoughScalingInput = {
+  mode: 'by-flour-weight' | 'by-target-dough-weight';
+  flourWeightGrams?: number;
+  targetDoughWeightGrams?: number;
+  loafCount: number;
+  hydrationPct: number;
+  starterPct: number;
+  starterHydrationPct: number;
+  saltPct: number;
+  oilPct?: number;
+  sugarPct?: number;
+  yeastPct?: number;
+  flourBlend?: FlourBlendItem[];
+};
+export type StarterFeedingInput = {
+  targetStarterWeightGrams: number;
+  seedPart: number;
+  flourPart: number;
+  waterPart: number;
+  extraGrams?: number;
+};
+export type PizzaDoughInput = {
+  pizzaCount: number;
+  ballWeightGrams: number;
+  hydrationPct: number;
+  saltPct: number;
+  oilPct?: number;
+  sugarPct?: number;
+  yeastPct?: number;
+  starterPct?: number;
+  starterHydrationPct?: number;
+  leaveningType: 'yeast' | 'sourdough';
+  flourBlend?: FlourBlendItem[];
+};
