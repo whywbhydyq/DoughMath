@@ -24,8 +24,5 @@ No login, uploads, cloud recipe storage, AI recipe generation, recipe library, n
 
 ```bash
 npm install
-npm run typecheck
-npm run test
-npm run build
 npm run dev
 ```
