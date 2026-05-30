@@ -8,7 +8,7 @@ export const formulaWarnings = (input: { hydrationPct?: number; saltPct?: number
   if ((input.hydrationPct ?? 0) < 55) out.push({ code: 'low-hydration', message: 'Hydration is low.' });
   if ((input.hydrationPct ?? 0) > 85) out.push({ code: 'high-hydration', message: 'Hydration is high.' });
   if ((input.saltPct ?? 0) > 3) out.push({ code: 'high-salt', message: 'Salt percentage is high.' });
-  if ((input.starterPct ?? 0) > 40) out.push({ code: 'high-starter', message: 'Starter percentage is high.' });
+  if ((input.starterPct ?? 0) > 60) out.push({ code: 'high-starter', message: 'Starter percentage is high and may ferment faster than expected.' });
   return out;
 };
 export const isPositiveFinite = (value: number) => Number.isFinite(value) && value > 0;

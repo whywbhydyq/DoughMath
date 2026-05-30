@@ -2,6 +2,7 @@ export type CalculatorEventName =
   | 'calculator_view'
   | 'calculator_input_changed'
   | 'calculator_result_generated'
+  | 'calculator_result_used'
   | 'copy_result_clicked'
   | 'print_clicked'
   | 'unit_changed'

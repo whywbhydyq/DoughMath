@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   calculateBakersPercentage,
@@ -14,6 +14,7 @@ import {
   type Warn
 } from '@/lib/bakingMath';
 import { trackCalculatorEvent } from '@/lib/analytics';
+import { setCalculatorUrlState } from '@/lib/urlState';
 import { PrintableRecipeCard } from '@/components/result/PrintableRecipeCard';
 import { formatWeight, fromGrams, toGrams, type WeightUnit } from '@/lib/units';
 import type { CalculatorResult, CalculatorType, CustomIngredientInput, FlourBlendItem } from '@/types/baking';
@@ -128,13 +129,12 @@ function readCustomIngredients(params: URLSearchParams): CustomIngredientForm[] 
 function serializeCustomIngredients(rows: CustomIngredientForm[]) {
   const payload = rows
     .map((row) => ({
-      id: row.id,
       name: row.name,
       lockMode: row.lockMode,
       percentage: row.lockMode === 'percentage' ? row.percentage : undefined,
       weightGrams: row.lockMode === 'weight' ? row.weightGrams : undefined
     }))
-    .filter((row) => (row.lockMode === 'percentage' ? (row.percentage ?? 0) > 0 : (row.weightGrams ?? 0) > 0) || row.name.trim() !== '');
+    .filter((row) => row.lockMode === 'percentage' ? (row.percentage ?? 0) > 0 : (row.weightGrams ?? 0) > 0);
   return payload.length ? JSON.stringify(payload) : '';
 }
 
@@ -309,8 +309,17 @@ function StarterSplitCard({ result, unit }: { result: CalculatorResult; unit: We
 }
 
 function WarningList({ items, slug }: { items: Warn[]; slug: string }) {
+  const seenWarnings = useRef<Set<string>>(new Set());
   useEffect(() => {
-    items.forEach((warning) => trackCalculatorEvent('warning_shown', slug, { warning_code: warning.code }));
+    seenWarnings.current.clear();
+  }, [slug]);
+  useEffect(() => {
+    items.forEach((warning) => {
+      const key = `${slug}:${warning.code}`;
+      if (seenWarnings.current.has(key)) return;
+      seenWarnings.current.add(key);
+      trackCalculatorEvent('warning_shown', slug, { warning_code: warning.code });
+    });
   }, [items, slug]);
   if (!items.length) return null;
   return (
@@ -323,15 +332,9 @@ function WarningList({ items, slug }: { items: Warn[]; slug: string }) {
 
 function useCalculatorState(slug: string, defaultInputs?: DefaultInputs) {
   const params = useSearchParams();
-  const defaults = mergedDefaults(defaultInputs);
+  const defaults = useMemo(() => mergedDefaults(defaultInputs), [defaultInputs]);
   const [state, setState] = useState<State>(() => readState(params, defaults));
   useEffect(() => { trackCalculatorEvent('calculator_view', slug); }, [slug]);
-  useEffect(() => {
-    const url = new URL(location.href);
-    Object.entries(state).forEach(([key, value]) => url.searchParams.set(key, String(value)));
-    history.replaceState(null, '', `${url.pathname}?${url.searchParams.toString()}`);
-    trackCalculatorEvent('calculator_result_generated', slug, { calculator_type: slug });
-  }, [state, slug]);
   const set = (key: keyof State, value: number | string) => setState((current) => {
     trackCalculatorEvent('calculator_input_changed', slug, { field: String(key) });
     return { ...current, [key]: value };
@@ -339,10 +342,10 @@ function useCalculatorState(slug: string, defaultInputs?: DefaultInputs) {
   const reset = () => setState(defaults);
   const setUnit = (value: string) => setState((current) => {
     const unit = value === 'oz' || value === 'lb' || value === 'g' ? value : current.unit;
-    trackCalculatorEvent('unit_changed', slug, { unit });
+    if (unit !== current.unit) trackCalculatorEvent('unit_changed', slug, { unit });
     return { ...current, unit };
   });
-  return { state, set, setUnit, reset };
+  return { state, defaults, set, setUnit, reset };
 }
 
 function compute(calculatorType: CalculatorType, state: State, customIngredients: CustomIngredientInput[]) {
@@ -365,11 +368,14 @@ function StarterPresets({ set, slug }: { set: (key: keyof State, value: number |
 
 function CopyButtons({ text, slug, reset }: { text: string; slug: string; reset: () => void }) {
   const [status, setStatus] = useState('');
+  const trackResultUse = (action: 'copy' | 'print' | 'share') => {
+    trackCalculatorEvent('calculator_result_used', slug, { action });
+  };
   return (
     <div className="no-print flex flex-wrap gap-3 rounded-3xl border border-amber-200/70 bg-white/90 p-4 shadow-soft">
-      <button className="min-h-11 rounded-xl bg-dough-900 px-5 py-2 font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-hover" onClick={async () => { await navigator.clipboard.writeText(text); trackCalculatorEvent('copy_result_clicked', slug); setStatus('Result copied.'); }}>Copy result</button>
-      <button className="min-h-11 rounded-xl border border-dough-200 bg-white px-5 py-2 font-semibold text-dough-900 transition hover:bg-amber-50" onClick={() => { trackCalculatorEvent('print_clicked', slug); window.print(); }}>Print recipe card</button>
-      <button className="min-h-11 rounded-xl border border-dough-200 bg-white px-5 py-2 font-semibold text-dough-900 transition hover:bg-amber-50" onClick={async () => { await navigator.clipboard.writeText(location.href); trackCalculatorEvent('share_url_copied', slug); setStatus('Share URL copied.'); }}>Copy share URL</button>
+      <button className="min-h-11 rounded-xl bg-dough-900 px-5 py-2 font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-hover" onClick={async () => { await navigator.clipboard.writeText(text); trackCalculatorEvent('copy_result_clicked', slug); trackResultUse('copy'); setStatus('Result copied.'); }}>Copy result</button>
+      <button className="min-h-11 rounded-xl border border-dough-200 bg-white px-5 py-2 font-semibold text-dough-900 transition hover:bg-amber-50" onClick={() => { trackCalculatorEvent('print_clicked', slug); trackResultUse('print'); window.print(); }}>Print recipe card</button>
+      <button className="min-h-11 rounded-xl border border-dough-200 bg-white px-5 py-2 font-semibold text-dough-900 transition hover:bg-amber-50" onClick={async () => { await navigator.clipboard.writeText(location.href); trackCalculatorEvent('share_url_copied', slug); trackResultUse('share'); setStatus('Share URL copied.'); }}>Copy share URL</button>
       <button className="min-h-11 rounded-xl border border-red-200 bg-red-50 px-5 py-2 font-semibold text-red-800 transition hover:bg-red-100" onClick={() => { reset(); setStatus('Inputs reset.'); }}>Reset</button>
       <span className="self-center text-sm font-medium text-stone-500" role="status">{status}</span>
     </div>
@@ -561,16 +567,13 @@ function CustomIngredientsEditor({
 }
 
 export default function Calculator({ slug, calculatorType, defaultInputs }: { slug: string; calculatorType: CalculatorType; defaultInputs?: DefaultInputs }) {
-  const { state, set, setUnit, reset } = useCalculatorState(slug, defaultInputs);
+  const { state, defaults, set, setUnit, reset } = useCalculatorState(slug, defaultInputs);
   const params = useSearchParams();
   const [customIngredients, setCustomIngredients] = useState<CustomIngredientForm[]>(() => readCustomIngredients(params));
+  const serializedCustomIngredients = useMemo(() => serializeCustomIngredients(customIngredients), [customIngredients]);
   useEffect(() => {
-    const url = new URL(location.href);
-    const serialized = serializeCustomIngredients(customIngredients);
-    if (serialized) url.searchParams.set('custom', serialized);
-    else url.searchParams.delete('custom');
-    history.replaceState(null, '', `${url.pathname}?${url.searchParams.toString()}`);
-  }, [customIngredients]);
+    setCalculatorUrlState(calculatorType, { ...state }, { ...defaults }, serializedCustomIngredients);
+  }, [calculatorType, defaults, serializedCustomIngredients, state]);
   const activeCustom = useMemo(() => activeCustomIngredients(customIngredients), [customIngredients]);
   const resetAll = () => { reset(); setCustomIngredients([]); };
   const computed = useMemo(() => {
