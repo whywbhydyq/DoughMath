@@ -18,6 +18,7 @@ import { setCalculatorUrlState } from '@/lib/urlState';
 import { PrintableRecipeCard } from '@/components/result/PrintableRecipeCard';
 import { formatWeight, fromGrams, toGrams, type WeightUnit } from '@/lib/units';
 import type { CalculatorResult, CalculatorType, CustomIngredientInput, FlourBlendItem } from '@/types/baking';
+import type { ResultMicrocopy } from '@/types/content';
 
 type DefaultInputs = Record<string, number | string>;
 
@@ -270,7 +271,7 @@ function IngredientCards({ items, title, unit, caption }: { items: Ingredient[];
   );
 }
 
-function FormulaTotalsCard({ result, unit }: { result: CalculatorResult; unit: WeightUnit }) {
+function FormulaTotalsCard({ result, unit, caption }: { result: CalculatorResult; unit: WeightUnit; caption?: string }) {
   const totals = result.formulaTotals;
   if (!totals) return null;
   const rows = [
@@ -285,6 +286,7 @@ function FormulaTotalsCard({ result, unit }: { result: CalculatorResult; unit: W
   return (
     <section className="rounded-3xl border border-dough-200 bg-result p-5 shadow-soft">
       <h2 className="text-lg font-bold text-stone-950">Formula totals</h2>
+      {caption ? <p className="mt-1 text-sm leading-6 text-stone-700">{caption}</p> : null}
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {rows.map(([label, value]) => <div className="rounded-2xl bg-white/85 p-3" key={label}><p className="text-xs font-semibold uppercase tracking-wide text-stone-500">{label}</p><p className="mt-1 text-xl font-bold tabular-nums text-stone-950">{value}</p></div>)}
       </div>
@@ -292,13 +294,13 @@ function FormulaTotalsCard({ result, unit }: { result: CalculatorResult; unit: W
   );
 }
 
-function StarterSplitCard({ result, unit }: { result: CalculatorResult; unit: WeightUnit }) {
+function StarterSplitCard({ result, unit, caption }: { result: CalculatorResult; unit: WeightUnit; caption?: string }) {
   const starter = result.starterSplit;
   if (!starter || starter.starterWeightGrams <= 0) return null;
   return (
     <section className="rounded-3xl border border-sky-200 bg-sky-50 p-5 shadow-soft">
       <h2 className="text-lg font-bold text-sky-950">Starter split</h2>
-      <p className="mt-1 text-sm text-sky-800">Starter is split into its internal flour and water for total hydration. Do not add these twice.</p>
+      <p className="mt-1 text-sm text-sky-800">{caption ?? 'Starter is split into its internal flour and water for total hydration. Do not add these twice.'}</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <Metric label="Starter" value={formatWeight(starter.starterWeightGrams, unit)} />
         <Metric label="Starter flour" value={formatWeight(starter.flourGrams, unit)} />
@@ -566,7 +568,7 @@ function CustomIngredientsEditor({
   );
 }
 
-export default function Calculator({ slug, calculatorType, defaultInputs }: { slug: string; calculatorType: CalculatorType; defaultInputs?: DefaultInputs }) {
+export default function Calculator({ slug, calculatorType, defaultInputs, resultMicrocopy }: { slug: string; calculatorType: CalculatorType; defaultInputs?: DefaultInputs; resultMicrocopy?: ResultMicrocopy }) {
   const { state, defaults, set, setUnit, reset } = useCalculatorState(slug, defaultInputs);
   const params = useSearchParams();
   const [customIngredients, setCustomIngredients] = useState<CustomIngredientForm[]>(() => readCustomIngredients(params));
@@ -591,7 +593,7 @@ export default function Calculator({ slug, calculatorType, defaultInputs }: { sl
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 no-print">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-dough-700">Calculator workspace</p>
-          <p className="mt-1 text-sm text-stone-600">Adjust inputs on the left. Use the result cards for weighing, printing, or sharing.</p>
+          <p className="mt-1 text-sm text-stone-600">Adjust inputs on the left. Use the result cards for weighing, copying, printing, or sharing.</p>
         </div>
         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-soft">Local browser calculation</span>
       </div>
@@ -661,7 +663,7 @@ export default function Calculator({ slug, calculatorType, defaultInputs }: { sl
           {calculatorType === 'starter-feeding' && <StarterPresets set={set} slug={slug} />}
         </div>
         <div className="space-y-5 print-card">
-          {computed.error && <div className="no-print rounded-3xl border border-red-300 bg-danger p-5 text-sm text-red-950 shadow-soft" role="alert"><b>Calculation cannot run with the current inputs.</b><p className="mt-2">{computed.error}</p><button className="mt-4 min-h-11 rounded-xl border border-red-200 bg-white px-4 py-2 font-semibold" onClick={resetAll}>Reset inputs</button></div>}
+          {computed.error && <div className="no-print rounded-3xl border border-red-300 bg-danger p-5 text-sm text-red-950 shadow-soft" role="alert"><b>Calculation cannot run with the current inputs.</b><p className="mt-2">{resultMicrocopy?.error ?? computed.error}</p><p className="mt-1 text-xs text-red-800">{computed.error}</p><button className="mt-4 min-h-11 rounded-xl border border-red-200 bg-white px-4 py-2 font-semibold" onClick={resetAll}>Reset inputs</button></div>}
           {result && <>
             <PrintableRecipeCard title={titleFromSlug(slug)} result={result} unit={state.unit} inputSummary={inputSummary} />
             <div className="no-print space-y-5">
@@ -671,12 +673,14 @@ export default function Calculator({ slug, calculatorType, defaultInputs }: { sl
                 {result.totalFormulaPct !== undefined ? <Metric label="Formula" value={pct(result.totalFormulaPct)} /> : null}
                 {result.starterForRecipeGrams !== undefined ? <Metric label="For recipe" value={formatWeight(result.starterForRecipeGrams, state.unit)} /> : null}
               </div>
-              <IngredientCards title="Add to bowl" caption="These are the weights you actually measure and mix." items={result.addToBowl ?? result.ingredients} unit={state.unit} />
-              <FormulaTotalsCard result={result} unit={state.unit} />
-              <StarterSplitCard result={result} unit={state.unit} />
+              {resultMicrocopy?.summary ? <div className="rounded-3xl border border-amber-200 bg-amber-50/80 p-4 text-sm leading-6 text-stone-700"><b>How to read this result:</b> {resultMicrocopy.summary}</div> : null}
+              <IngredientCards title="Add to bowl" caption={resultMicrocopy?.addToBowl ?? "These are the weights you actually measure and mix."} items={result.addToBowl ?? result.ingredients} unit={state.unit} />
+              <FormulaTotalsCard result={result} unit={state.unit} caption={resultMicrocopy?.formulaTotals} />
+              <StarterSplitCard result={result} unit={state.unit} caption={resultMicrocopy?.starterSplit} />
               {result.flourBlend ? <IngredientCards title="Formula flour blend" caption="These percentages apply to total flour. In sourdough formulas, starter flour is counted here and deducted from the flour you add to the bowl." items={result.flourBlend} unit={state.unit} /> : null}
-              {result.perUnit ? <IngredientCards title={result.perUnitLabel ?? 'Per unit'} caption="Scaled from the total formula." items={result.perUnit} unit={state.unit} /> : null}
+              {result.perUnit ? <IngredientCards title={result.perUnitLabel ?? 'Per unit'} caption={resultMicrocopy?.perUnit ?? "Scaled from the total formula."} items={result.perUnit} unit={state.unit} /> : null}
               <WarningList items={result.warnings ?? []} slug={slug} />
+              {resultMicrocopy?.copyHint ? <p className="rounded-2xl bg-stone-50 p-3 text-sm leading-6 text-stone-600">{resultMicrocopy.copyHint}</p> : null}
               <CopyButtons text={copyText} slug={slug} reset={resetAll} />
             </div>
           </>}

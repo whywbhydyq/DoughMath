@@ -1,3 +1,5 @@
+> Current status note (2026-05-30): this requirements document includes historical implementation planning details. The current package removes local Vitest / ESLint workflows and relies on Vercel deployment logs plus manual browser checks for release verification.
+
 # 面包 / 酸种烘焙百分比工具站需求文档
 
 版本：v1.0  
@@ -1625,7 +1627,7 @@ Your starter already contributes more water than the target hydration allows. Lo
 
 ---
 
-## 14. 测试用例
+## 14. 历史测试用例（当前包已移除本地测试工具链）
 
 ### 14.1 Baker’s Percentage Calculator
 
@@ -1840,7 +1842,7 @@ Yeast approx 1g
 - 结果在客户端即时计算；
 - 页面内容可用 MDX 或静态数据生成；
 - 所有计算函数单独放入 `/lib/calculators`；
-- 测试使用 Vitest。
+- 历史计划曾包含 Vitest；当前依赖优化包已移除本地测试工具链。
 
 ### 15.2 目录结构
 
@@ -1889,11 +1891,9 @@ src/
     pages.ts
     faqs.ts
     relatedTools.ts
-  tests/
+  historical-tests-removed/
     calculators/
-      hydration.test.ts
-      starterFeeding.test.ts
-      doughScaling.test.ts
+      local test files removed from the current package
 ```
 
 ### 15.3 性能要求
@@ -2246,7 +2246,7 @@ affiliate_clicked
 
 验收标准：
 
-- 所有公式测试通过；
+- 核心公式通过源码审计和线上手动检查；
 - 移动端可正常使用；
 - 结果不出现 starter 重复计算；
 - 5 个工具页可索引；
@@ -2336,7 +2336,7 @@ affiliate_clicked
 
 ### 24.4 质量验收
 
-- [ ] 关键公式有单元测试；
+- [ ] 关键公式集中在纯函数中，并通过源码审计；
 - [ ] 移动端 360px 可用；
 - [ ] Lighthouse Performance 90+；
 - [ ] 无 console error；
@@ -2428,7 +2428,7 @@ Salt: 2%
 
 如果把本需求文档交给另一个 AI 开发，应要求它遵守：
 
-1. 先实现纯计算函数和测试；
+1. 先实现纯计算函数，并保持公式集中、可审计；
 2. 再实现 5 个工具页面；
 3. 再实现首页、about、privacy、disclaimer；
 4. 不做登录；

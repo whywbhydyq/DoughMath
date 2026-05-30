@@ -122,7 +122,7 @@ export const toolPages: ToolPageData[] = [
     defaultInputs: { flour: 600, water: 420, starter: 150, sh: 100, saltg: 12, breadPct: 80, wholePct: 20, ryePct: 0 },
     intro: 'Use this preset when a recipe lists added water but you want hydration after including starter flour and water.',
     formulaNotes: ['Added hydration looks only at main flour and added water.', 'Total hydration includes starter flour and starter water.', 'Both numbers can be useful because recipes do not always define hydration the same way.'],
-    examples: [{ title: 'Added vs total hydration', input: '600g flour, 420g water, 150g starter at 100%.', output: 'Added hydration is 70%; total hydration is lower or higher depending on starter split.' }],
+    examples: [{ title: 'Added vs total hydration', input: '600g flour, 420g water, 150g starter at 100%.', output: 'Added hydration is 70%; total hydration is about 73.3% with a 100% hydration starter.' }],
     commonMistakes: ['Do not compare total hydration to a recipe that only reports added hydration without checking the definition.', ...sharedMistakes],
     faqs: [{ question: 'Why are added hydration and total hydration different?', answer: 'Because starter contributes both flour and water. Total hydration includes those internal amounts.' }, ...sharedFaqs],
     relatedSlugs: ['sourdough-hydration-calculator', 'dough-scaling-calculator', 'bakers-percentage-calculator'],

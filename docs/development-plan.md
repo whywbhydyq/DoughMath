@@ -1,5 +1,7 @@
 # 面包 / 酸种烘焙百分比工具站开发计划
 
+> Current status note (2026-05-30): this document is a historical planning artifact. The current dependency-optimized package intentionally removes local test, lint, typecheck, and build workflows. Production verification is handled by Vercel deployment logs plus manual browser checks.
+
 版本：v1.0  
 生成日期：2026-05-24  
 项目类型：英文免费工具站 / 轻量工具矩阵  
@@ -23,7 +25,7 @@
 
 第一版只做本地计算，不登录、不上传、不保存云端数据、不做 AI 生成食谱、不做复杂发酵预测。
 
-技术上建议使用 Next.js App Router + TypeScript + Tailwind CSS + Vitest。核心公式必须集中在纯函数库中，先写测试，再接 UI。
+技术上建议使用 Next.js App Router + TypeScript + Tailwind CSS。核心公式必须集中在纯函数库中，先集中公式逻辑，再接 UI。
 
 ---
 
@@ -118,7 +120,7 @@
 | Framework | Next.js App Router |
 | Language | TypeScript |
 | Styling | Tailwind CSS |
-| Unit Test | Vitest |
+| Historical unit-test plan | Removed from the current dependency-optimized package |
 | E2E / Smoke Test | Playwright，可 P1 加 |
 | Analytics | Vercel Analytics 或 Plausible / GA4 |
 | Deployment | Vercel |
@@ -132,7 +134,7 @@
 1. 所有公式必须是纯函数。
 2. 计算逻辑不得写在 React 组件里。
 3. UI 只能调用 `lib/bakingMath.ts`。
-4. 每个公式函数必须有单元测试。
+4. 每个公式函数必须保持清晰、集中、可审计；当前包不保留本地测试工具链。
 5. URL 参数解析必须有 schema 和容错。
 6. 页面内容和计算器默认值应从统一 `pageData.ts` 读取。
 7. sitemap 和 metadata 不手写重复配置，应从页面数据生成。
@@ -224,11 +226,11 @@ src/
     baking.ts
     page.ts
 
-  tests/
-    bakingMath.test.ts
-    units.test.ts
-    urlState.test.ts
-    validation.test.ts
+  historical-tests-removed/
+    bakingMath historical test file removed
+    units historical test file removed
+    urlState historical test file removed
+    validation historical test file removed
 ```
 
 ---
@@ -928,14 +930,14 @@ Tools that make bread formulas easier to measure
 
 ---
 
-## 13. 测试计划
+## 13. 历史测试计划（当前包已移除本地测试工具链）
 
 ### 13.1 单元测试
 
 文件：
 
 ```txt
-src/tests/bakingMath.test.ts
+src/historical-tests-removed/bakingMath historical test file removed
 ```
 
 #### Baker percentage
@@ -1081,8 +1083,8 @@ it("calculates pizza dough balls", () => {
 
 - 创建 Next.js + TypeScript 项目。
 - 配置 Tailwind。
-- 配置 ESLint。
-- 配置 Vitest。
+- 历史计划曾包含 ESLint；当前包已移除本地 lint 工具链。
+- 本地测试工具链已从当前包移除。
 - 配置基础 layout。
 - 配置 `BASE_URL` 环境变量。
 - 添加 `robots.ts` 和 `sitemap.ts` 占位。
@@ -1093,15 +1095,15 @@ it("calculates pizza dough balls", () => {
 验收：
 
 - `npm run dev` 可启动。
-- `npm run build` 通过。
-- `npm run test` 通过。
+- Vercel production build log should be reviewed after deployment.
+- Manual browser checks should pass after deployment.
 - 首页可访问。
 - sitemap.xml 可访问。
 - robots.txt 可访问。
 
 ---
 
-## Phase 1：公式库和测试
+## Phase 1：公式库和历史测试计划
 
 目标：先把数学算对。
 
@@ -1120,13 +1122,13 @@ it("calculates pizza dough balls", () => {
   - `calculateStarterFeeding`
   - `calculateDoughScaling`
   - `calculatePizzaDough`
-- 编写单元测试。
-- 编写边界测试。
-- 编写 rounding 测试。
+- 历史计划曾要求编写单元测试；当前包已移除本地测试工具链。
+- 历史计划曾要求边界测试；当前包以源码审计和 Vercel 部署日志为准。
+- 历史计划曾要求 rounding 测试；当前包不保留本地测试文件。
 
 验收：
 
-- 核心公式测试全部通过。
+- 核心公式应通过源码审计和线上手动检查。
 - starter hydration 50%、100%、125% 都正确。
 - target dough weight 反推正确。
 - feeding ratio 1:2:2、1:5:5 正确。
@@ -1364,13 +1366,13 @@ it("calculates pizza dough balls", () => {
 - 键盘可操作。
 - 错误提示屏幕阅读器可读。
 - 移动端无横向滚动。
-- build 无 warning。
+- Vercel production build log should be reviewed after deployment.
 - sitemap / robots / canonical 正确。
 
 验收：
 
-- `npm run build` 通过。
-- `npm run test` 通过。
+- Vercel production build log should be reviewed after deployment.
+- Manual browser checks should pass after deployment.
 - 首页和核心工具页 Lighthouse SEO 基础合格。
 - 移动端输入体验合格。
 - 无控制台错误。
@@ -1480,8 +1482,8 @@ it("calculates pizza dough balls", () => {
 - A1 创建 Next.js 项目。
 - A2 配置 TypeScript strict。
 - A3 配置 Tailwind。
-- A4 配置 Vitest。
-- A5 配置 ESLint。
+- A4 本地测试工具链已从当前包移除。
+- A5 历史 lint 任务已从当前包移除。
 - A6 创建基础 layout。
 - A7 创建 footer legal links。
 - A8 创建 sitemap / robots。
@@ -1498,7 +1500,7 @@ it("calculates pizza dough balls", () => {
 - B8 实现 dough scaling。
 - B9 实现 pizza dough。
 - B10 实现 validation warnings。
-- B11 写完整测试。
+- B11 历史测试任务已从当前包移除。
 
 ### Epic C：通用组件
 
@@ -1553,8 +1555,8 @@ it("calculates pizza dough balls", () => {
 
 ### Epic G：QA 和上线
 
-- G1 npm run test。
-- G2 npm run build。
+- G1 本地 test 已从当前工作流移除。
+- G2 本地 build 不在当前工作流中执行。
 - G3 mobile QA。
 - G4 print QA。
 - G5 URL share QA。
@@ -1594,7 +1596,7 @@ it("calculates pizza dough balls", () => {
 
 - [ ] 5 个核心工具可访问。
 - [ ] 所有工具在移动端可正常输入。
-- [ ] 核心公式单元测试通过。
+- [ ] 核心公式通过源码审计和线上手动检查。
 - [ ] starter 50%、100%、125% hydration 拆分正确。
 - [ ] target dough weight 反推正确。
 - [ ] pizza dough ball weight 计算正确。
@@ -1613,8 +1615,8 @@ it("calculates pizza dough balls", () => {
 - [ ] 打印模式不显示广告。
 - [ ] 不上传用户配方数据。
 - [ ] 不要求登录。
-- [ ] build 通过。
-- [ ] test 通过。
+- [ ] Vercel production build should complete after deployment.
+- [ ] Manual browser checks should pass after deployment.
 - [ ] 无控制台错误。
 
 ---
@@ -1628,10 +1630,10 @@ it("calculates pizza dough balls", () => {
 
 严格按本开发计划执行。第一版只做 MVP，不做账号、不做云端保存、不做 AI 食谱、不做食谱库、不做复杂发酵预测。
 
-技术栈使用 Next.js App Router + TypeScript + Tailwind + Vitest。
+技术栈使用 Next.js App Router + TypeScript + Tailwind。
 
 开发顺序必须是：
-1. 先实现 src/lib/bakingMath.ts、types、validation、rounding，并写完整单元测试；
+1. 先实现 src/lib/bakingMath.ts、types、validation、rounding，并保持公式集中、可审计；
 2. 再实现通用 UI 组件；
 3. 再实现 5 个核心计算器；
 4. 再实现页面矩阵、metadata、sitemap、robots；
@@ -1644,11 +1646,7 @@ it("calculates pizza dough balls", () => {
 不得把广告放在输入框、Calculate 按钮、结果表格内部或打印页。
 不得上传或保存用户配方数据。
 
-完成后运行：
-npm run test
-npm run build
-
-并输出完成项、测试结果、未完成项和风险。
+完成后不要运行本地 test / lint / typecheck / build。部署后检查 Vercel production build log，并输出完成项、线上检查结果、未完成项和风险。
 ```
 
 ---
