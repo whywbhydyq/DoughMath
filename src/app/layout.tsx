@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import Link from 'next/link';
+import { AdSenseAutoAds } from '@/components/AdSenseAutoAds';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <Script id="adsbygoogle-init" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1653188471819736" crossOrigin="anonymous" strategy="afterInteractive" />
+        <AdSenseAutoAds />
         <header className="no-print border-b bg-white">
           <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-4 px-4 py-2">
             <Link href="/" className="shrink-0 text-xl font-bold text-dough-900">DoughMath</Link>
