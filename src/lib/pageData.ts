@@ -14,7 +14,6 @@ export interface ToolPageData {
   commonMistakes: string[];
   faqs: { question: string; answer: string }[];
   relatedSlugs: string[];
-  priority: number;
   isLongTail?: boolean;
 }
 
@@ -40,8 +39,8 @@ const sharedMistakes = [
 export const toolPages: ToolPageData[] = [
   page({
     slug: 'bakers-percentage-calculator',
-    title: "Baker's Percentage Calculator",
-    description: "Calculate baker's percentages and ingredient weights from flour, hydration, starter, salt, oil, sugar, and flour blend percentages.",
+    title: "Baker’s Percentage Calculator for Bread",
+    description: "Calculate baker’s percentages and ingredient weights for bread dough, including hydration, starter, salt, oil, sugar, and flour blend percentages by weight.",
     h1: "Baker's Percentage Calculator",
     calculatorType: 'bakers-percentage',
     defaultInputs: { flour: 500, hyd: 75, starter: 20, salt: 2, oil: 0, sugar: 0, bakerMode: 'percentages', breadPct: 100, wholePct: 0, ryePct: 0 },
@@ -51,12 +50,11 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not make water 100%. Flour is the 100% baseline.', 'If you enter starter as a baker’s percentage here, it is shown as total starter weight. Use the sourdough hydration calculator to split starter into flour and water.', 'Keep flour blend percentages at exactly 100%.', ...sharedMistakes],
     faqs: [{ question: 'Why does the total percentage exceed 100%?', answer: 'Because flour is the baseline. Water, salt, starter, oil, and other ingredients are added on top of the 100% flour line.' }, { question: 'Can I enter ingredient weights instead of percentages?', answer: 'Yes. Switch the calculator mode to percentages from weights.' }, ...sharedFaqs],
     relatedSlugs: ['grams-to-bakers-percentage', 'bakers-percentage-to-grams', 'sourdough-hydration-calculator'],
-    priority: 0.9
   }),
   page({
     slug: 'sourdough-hydration-calculator',
-    title: 'Sourdough Hydration Calculator',
-    description: 'Split starter into flour and water, then calculate added hydration, total hydration, salt percentage, and dough weight.',
+    title: 'Sourdough Hydration Calculator for Starter',
+    description: 'Split sourdough starter into flour and water, then calculate added hydration, total hydration, salt percentage, and final dough weight from gram inputs.',
     h1: 'Sourdough Hydration Calculator',
     calculatorType: 'sourdough-hydration',
     defaultInputs: { flour: 500, water: 350, starter: 100, sh: 100, saltg: 10, breadPct: 100, wholePct: 0, ryePct: 0 },
@@ -66,12 +64,11 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not calculate salt percentage from main flour only if you want total formula salt percentage.', 'Do not add starter flour and water again to the bowl. The starter itself is the measured ingredient.', ...sharedMistakes],
     faqs: [{ question: 'Does starter count toward hydration?', answer: 'In this calculator, yes. The starter is split into internal flour and water before total hydration is calculated.' }, { question: 'Is 100g of 100% hydration starter 100g of water?', answer: 'No. It is about 50g flour and 50g water.' }, ...sharedFaqs],
     relatedSlugs: ['total-hydration-calculator', 'bakers-percentage-calculator', 'starter-feeding-calculator'],
-    priority: 0.9
   }),
   page({
     slug: 'starter-feeding-calculator',
-    title: 'Sourdough Starter Feeding Calculator',
-    description: 'Calculate seed starter, flour, and water for 1:1:1, 1:2:2, 1:5:5, or custom sourdough starter feeding ratios.',
+    title: 'Sourdough Starter Feeding Calculator Ratios',
+    description: 'Calculate seed starter, flour, and water for 1:1:1, 1:2:2, 1:5:5, or custom sourdough feeding ratios, including extra starter to keep for baking later.',
     h1: 'Sourdough Starter Feeding Calculator',
     calculatorType: 'starter-feeding',
     defaultInputs: { target: 100, seed: 1, flourpart: 2, waterpart: 2, extra: 10 },
@@ -81,12 +78,11 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not forget to include the starter you want to keep for the next feeding.', 'Do not assume a high feeding ratio will peak at the same time as 1:1:1.', 'Use clean containers and food-safe handling; this is a math tool, not a food safety tool.'],
     faqs: [{ question: 'What does 1:2:2 mean?', answer: 'It means 1 part seed starter, 2 parts flour, and 2 parts water by weight.' }, { question: 'Does this predict when my starter will peak?', answer: 'No. It only calculates weights. Temperature, flour, starter activity, and hydration affect timing.' }, ...sharedFaqs],
     relatedSlugs: ['sourdough-starter-ratio-1-2-2', 'sourdough-starter-ratio-1-5-5', 'levain-calculator'],
-    priority: 0.85
   }),
   page({
     slug: 'dough-scaling-calculator',
-    title: 'Dough Scaling Calculator',
-    description: 'Scale bread dough from target dough weight, flour weight, loaf count, hydration, starter percentage, starter hydration, and salt percentage.',
+    title: 'Dough Scaling Calculator by Weight or Loaves',
+    description: 'Scale bread dough from target dough weight, flour weight, or loaf count, with hydration, starter percentage, starter hydration, salt, oil, and sugar included.',
     h1: 'Dough Scaling Calculator',
     calculatorType: 'dough-scaling',
     defaultInputs: { mode: 'target', target: 1000, perLoaf: 750, flour: 500, loaves: 1, hyd: 75, starter: 20, sh: 100, salt: 2, oil: 0, sugar: 0, breadPct: 100, wholePct: 0, ryePct: 0 },
@@ -96,12 +92,11 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not add starter as an extra ingredient after already counting its flour and water.', 'If added water becomes negative, reduce starter, raise hydration, or use a stiffer starter.', 'Check per-loaf weights before dividing dough.', ...sharedMistakes],
     faqs: [{ question: 'Why is Add to bowl different from Formula totals?', answer: 'Add to bowl shows what you weigh. Formula totals split starter into internal flour and water for hydration math.' }, { question: 'What does starter percentage mean here?', answer: 'It means total starter weight divided by total flour weight.' }, ...sharedFaqs],
     relatedSlugs: ['bread-recipe-scaler', 'dough-weight-calculator', 'sourdough-hydration-calculator'],
-    priority: 0.95
   }),
   page({
     slug: 'pizza-dough-calculator',
-    title: 'Pizza Dough Calculator',
-    description: 'Calculate flour, water, salt, oil, yeast or starter, total dough weight, and per-ball weights for pizza dough.',
+    title: 'Pizza Dough Calculator for Balls and Hydration',
+    description: 'Calculate pizza dough flour, water, salt, oil, yeast or starter, total dough weight, and per-ball weights from pizza count and dough ball size in grams.',
     h1: 'Pizza Dough Calculator',
     calculatorType: 'pizza-dough',
     defaultInputs: { count: 3, ball: 280, hyd: 65, salt: 2.5, oil: 0, sugar: 0, yeast: 0.2, starter: 20, sh: 100, lev: 'yeast', breadPct: 100, wholePct: 0, ryePct: 0 },
@@ -111,12 +106,11 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not use sourdough starter and yeast percentages together unless you intentionally want both.', 'Neapolitan-ish, pan, and focaccia-ish hydration ranges are starting points, not absolute standards.', 'Cold fermentation timing is not calculated here.', ...sharedMistakes],
     faqs: [{ question: 'Can this calculate sourdough pizza?', answer: 'Yes. Switch leavening to sourdough starter and enter starter percentage and starter hydration.' }, { question: 'Does oil count in total dough weight?', answer: 'Yes. Oil and sugar are included in target dough weight when their percentages are above zero.' }, ...sharedFaqs],
     relatedSlugs: ['pizza-dough-ball-weight-calculator', 'sourdough-pizza-calculator', 'dough-scaling-calculator'],
-    priority: 0.9
   }),
   page({
     slug: 'total-hydration-calculator',
-    title: 'Total Hydration Calculator',
-    description: 'Calculate total dough hydration including starter flour and starter water.',
+    title: 'Total Hydration Calculator with Starter',
+    description: 'Calculate total dough hydration including starter flour and starter water, then compare it with added hydration from main flour and added water by weight.',
     h1: 'Total Hydration Calculator',
     calculatorType: 'sourdough-hydration',
     defaultInputs: { flour: 600, water: 420, starter: 150, sh: 100, saltg: 12, breadPct: 80, wholePct: 20, ryePct: 0 },
@@ -126,13 +120,12 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not compare total hydration to a recipe that only reports added hydration without checking the definition.', ...sharedMistakes],
     faqs: [{ question: 'Why are added hydration and total hydration different?', answer: 'Because starter contributes both flour and water. Total hydration includes those internal amounts.' }, ...sharedFaqs],
     relatedSlugs: ['sourdough-hydration-calculator', 'dough-scaling-calculator', 'bakers-percentage-calculator'],
-    priority: 0.72,
     isLongTail: true
   }),
   page({
     slug: 'sourdough-starter-ratio-1-2-2',
-    title: '1:2:2 Starter Feeding Calculator',
-    description: 'Preset starter feeding calculator for a 1:2:2 sourdough starter ratio.',
+    title: '1:2:2 Starter Feeding Calculator by Weight',
+    description: 'Use this 1:2:2 sourdough starter feeding preset to calculate seed starter, flour, water, total build weight, and extra starter to keep by weight in grams.',
     h1: '1:2:2 Starter Feeding Calculator',
     calculatorType: 'starter-feeding',
     defaultInputs: { target: 100, seed: 1, flourpart: 2, waterpart: 2, extra: 10 },
@@ -142,13 +135,12 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not calculate only 100g if you also need starter to keep.', 'Do not assume 1:2:2 peaks at the same time in every kitchen.'],
     faqs: [{ question: 'How many total parts are in 1:2:2?', answer: 'Five parts: one seed part, two flour parts, and two water parts.' }, ...sharedFaqs],
     relatedSlugs: ['starter-feeding-calculator', 'sourdough-starter-ratio-1-5-5', 'levain-calculator'],
-    priority: 0.7,
     isLongTail: true
   }),
   page({
     slug: 'sourdough-starter-ratio-1-5-5',
-    title: '1:5:5 Starter Feeding Calculator',
-    description: 'Preset starter feeding calculator for a 1:5:5 sourdough starter ratio.',
+    title: '1:5:5 Starter Feeding Calculator by Weight',
+    description: 'Use this 1:5:5 sourdough starter feeding preset to calculate seed starter, flour, water, total build weight, and extra starter to keep by weight in grams.',
     h1: '1:5:5 Starter Feeding Calculator',
     calculatorType: 'starter-feeding',
     defaultInputs: { target: 200, seed: 1, flourpart: 5, waterpart: 5, extra: 20 },
@@ -158,13 +150,12 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not use 1:5:5 for a fast bake unless your starter and room temperature support it.', 'Do not discard all remaining starter if you want to keep a culture going.'],
     faqs: [{ question: 'Why use 1:5:5?', answer: 'It gives the starter more fresh flour and water relative to seed starter, often useful for longer intervals.' }, ...sharedFaqs],
     relatedSlugs: ['starter-feeding-calculator', 'sourdough-starter-ratio-1-2-2', 'levain-calculator'],
-    priority: 0.7,
     isLongTail: true
   }),
   page({
     slug: 'levain-calculator',
-    title: 'Levain Calculator',
-    description: 'Calculate levain build weights using starter feeding ratios.',
+    title: 'Levain Calculator for Sourdough Builds',
+    description: 'Calculate levain build weights from a target amount and feeding ratio, including seed starter, flour, water, and optional extra starter to keep for baking.',
     h1: 'Levain Calculator',
     calculatorType: 'starter-feeding',
     defaultInputs: { target: 180, seed: 1, flourpart: 3, waterpart: 3, extra: 0 },
@@ -174,13 +165,12 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not confuse levain target weight with total dough weight.', 'Do not rely on this calculator for peak time prediction.'],
     faqs: [{ question: 'Is levain different from starter?', answer: 'A levain is usually a build made from starter for a specific dough. The weight calculation is the same ratio concept.' }, ...sharedFaqs],
     relatedSlugs: ['starter-feeding-calculator', 'sourdough-hydration-calculator', 'sourdough-starter-ratio-1-2-2'],
-    priority: 0.72,
     isLongTail: true
   }),
   page({
     slug: 'bread-recipe-scaler',
-    title: 'Bread Recipe Scaler',
-    description: 'Scale a bread formula by target dough weight or flour weight.',
+    title: 'Bread Recipe Scaler by Flour or Dough Weight',
+    description: 'Scale a bread formula by target dough weight, flour weight, or loaf count, then calculate flour, water, starter, salt, and optional ingredients by grams.',
     h1: 'Bread Recipe Scaler',
     calculatorType: 'dough-scaling',
     defaultInputs: { mode: 'flour', flour: 800, perLoaf: 750, loaves: 2, hyd: 72, starter: 20, sh: 100, salt: 2, oil: 0, sugar: 0, breadPct: 80, wholePct: 20, ryePct: 0 },
@@ -190,13 +180,12 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not divide only flour by loaf count; divide the whole formula.', ...sharedMistakes],
     faqs: [{ question: 'Can I scale from final dough weight instead?', answer: 'Yes. Switch the mode to target dough weight.' }, ...sharedFaqs],
     relatedSlugs: ['dough-scaling-calculator', 'dough-weight-calculator', 'bakers-percentage-calculator'],
-    priority: 0.72,
     isLongTail: true
   }),
   page({
     slug: 'dough-weight-calculator',
-    title: 'Dough Weight Calculator',
-    description: 'Calculate total dough weight and per-loaf dough weight from a bread formula.',
+    title: 'Dough Weight Calculator for Bread Loaves',
+    description: 'Calculate total dough weight, per-loaf dough weight, and ingredient weights from hydration, starter percentage, salt, flour, and loaf count in grams accurately.',
     h1: 'Dough Weight Calculator',
     calculatorType: 'dough-scaling',
     defaultInputs: { mode: 'per-loaf', target: 1000, perLoaf: 1000, loaves: 1, hyd: 70, starter: 20, sh: 100, salt: 2, oil: 0, sugar: 0, breadPct: 100, wholePct: 0, ryePct: 0 },
@@ -206,13 +195,12 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not use baked loaf weight as final dough weight; bread loses water during baking.', ...sharedMistakes],
     faqs: [{ question: 'Is final dough weight the same as baked bread weight?', answer: 'No. The baked loaf is lighter because water evaporates during baking.' }, ...sharedFaqs],
     relatedSlugs: ['dough-scaling-calculator', 'bread-recipe-scaler', 'bakers-percentage-calculator'],
-    priority: 0.72,
     isLongTail: true
   }),
   page({
     slug: 'pizza-dough-ball-weight-calculator',
-    title: 'Pizza Dough Ball Weight Calculator',
-    description: 'Calculate pizza dough ingredients by ball weight and number of pizzas.',
+    title: 'Pizza Dough Ball Weight Calculator by Count',
+    description: 'Calculate pizza dough ingredients by ball weight and number of pizzas, including flour, water, salt, oil, yeast or starter, and per-ball totals in grams.',
     h1: 'Pizza Dough Ball Weight Calculator',
     calculatorType: 'pizza-dough',
     defaultInputs: { count: 4, ball: 250, hyd: 65, salt: 2.5, oil: 0, sugar: 0, yeast: 0.2, starter: 20, sh: 100, lev: 'yeast', breadPct: 100, wholePct: 0, ryePct: 0 },
@@ -222,13 +210,12 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not confuse ball weight before fermentation with finished pizza size.', 'Container size and fermentation schedule are not calculated here.'],
     faqs: [{ question: 'Can I change the dough ball weight?', answer: 'Yes. Use any ball weight that matches your pizza size and style.' }, ...sharedFaqs],
     relatedSlugs: ['pizza-dough-calculator', 'sourdough-pizza-calculator', 'dough-scaling-calculator'],
-    priority: 0.72,
     isLongTail: true
   }),
   page({
     slug: 'sourdough-pizza-calculator',
-    title: 'Sourdough Pizza Calculator',
-    description: 'Calculate sourdough pizza dough using starter percentage and starter hydration.',
+    title: 'Sourdough Pizza Calculator with Starter',
+    description: 'Calculate sourdough pizza dough using starter percentage and starter hydration, with flour, water, salt, oil, total dough, and per-ball weights in grams.',
     h1: 'Sourdough Pizza Calculator',
     calculatorType: 'pizza-dough',
     defaultInputs: { count: 3, ball: 280, hyd: 65, salt: 2.5, oil: 0, sugar: 0, starter: 20, sh: 100, lev: 'sourdough', yeast: 0, breadPct: 100, wholePct: 0, ryePct: 0 },
@@ -238,13 +225,12 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not add yeast percentage unless you intentionally want hybrid dough.', 'Do not count starter once as an ingredient and again as flour and water.'],
     faqs: [{ question: 'Why is added water lower in sourdough mode?', answer: 'Because the starter already contributes water that counts toward total hydration.' }, ...sharedFaqs],
     relatedSlugs: ['pizza-dough-calculator', 'sourdough-hydration-calculator', 'pizza-dough-ball-weight-calculator'],
-    priority: 0.72,
     isLongTail: true
   }),
   page({
     slug: 'grams-to-bakers-percentage',
     title: 'Grams to Baker’s Percentage Calculator',
-    description: 'Convert ingredient gram weights into baker’s percentages.',
+    description: 'Convert ingredient gram weights into baker’s percentages, including hydration, starter, salt, oil, sugar, and custom ingredients against total flour weight.',
     h1: 'Grams to Baker’s Percentage Calculator',
     calculatorType: 'bakers-percentage',
     defaultInputs: { bakerMode: 'weights', flour: 1000, bpWater: 700, bpStarter: 0, bpSalt: 20, bpOil: 0, bpSugar: 0, bpOther: 0, breadPct: 100, wholePct: 0, ryePct: 0 },
@@ -254,13 +240,12 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not divide by total dough weight. Divide by flour weight.', ...sharedMistakes],
     faqs: [{ question: 'Can starter be converted too?', answer: 'Yes. Starter weight can be expressed as a percentage of flour weight.' }, ...sharedFaqs],
     relatedSlugs: ['bakers-percentage-calculator', 'bakers-percentage-to-grams', 'dough-scaling-calculator'],
-    priority: 0.72,
     isLongTail: true
   }),
   page({
     slug: 'bakers-percentage-to-grams',
     title: 'Baker’s Percentage to Grams Calculator',
-    description: 'Convert baker percentages into gram ingredient weights.',
+    description: 'Convert baker percentages into gram ingredient weights for bread dough, including hydration, starter, salt, oil, sugar, and flour blend percentages by weight.',
     h1: 'Baker’s Percentage to Grams Calculator',
     calculatorType: 'bakers-percentage',
     defaultInputs: { bakerMode: 'percentages', flour: 1000, hyd: 70, starter: 0, salt: 2, oil: 0, sugar: 0, otherPct: 0, breadPct: 100, wholePct: 0, ryePct: 0 },
@@ -270,24 +255,23 @@ export const toolPages: ToolPageData[] = [
     commonMistakes: ['Do not use the final dough weight as the flour input.', ...sharedMistakes],
     faqs: [{ question: 'Can I split the flour into whole wheat or rye?', answer: 'Yes. Adjust the flour blend fields; they must add up to 100%.' }, ...sharedFaqs],
     relatedSlugs: ['bakers-percentage-calculator', 'grams-to-bakers-percentage', 'dough-scaling-calculator'],
-    priority: 0.72,
     isLongTail: true
   })
 ];
 
 export const legalPages = [
-  { slug: 'about', title: 'About DoughMath', description: 'About the DoughMath bread and sourdough calculator site.', canonicalPath: '/about', priority: 0.5 },
-  { slug: 'privacy', title: 'Privacy Policy', description: 'Privacy policy for DoughMath browser-only calculators.', canonicalPath: '/privacy', priority: 0.5 },
-  { slug: 'terms', title: 'Terms of Use', description: 'Terms of use for DoughMath.', canonicalPath: '/terms', priority: 0.4 },
-  { slug: 'disclaimer', title: 'Disclaimer', description: 'Baking calculation disclaimer for DoughMath.', canonicalPath: '/disclaimer', priority: 0.5 },
-  { slug: 'contact', title: 'Contact', description: 'Contact DoughMath.', canonicalPath: '/contact', priority: 0.4 },
-  { slug: 'affiliate-disclosure', title: 'Affiliate Disclosure', description: 'Affiliate disclosure for DoughMath.', canonicalPath: '/affiliate-disclosure', priority: 0.3 }
+  { slug: 'about', title: 'About DoughMath Bread and Sourdough Calculators Online', description: 'Learn what DoughMath does, how its browser-only bread calculators handle formula math, and what the site does not store, predict, upload, or replace online.', canonicalPath: '/about' },
+  { slug: 'privacy', title: 'DoughMath Privacy Policy for Browser-Only Calculators', description: 'Read how DoughMath handles browser-only calculator inputs, share URLs, analytics, advertising disclosures, and contact information for privacy questions.', canonicalPath: '/privacy' },
+  { slug: 'terms', title: 'DoughMath Terms of Use for Bread Formula Calculators', description: 'Review DoughMath terms for using browser-only bread calculators, formula outputs, share links, guide content, affiliate disclosures, and project feedback.', canonicalPath: '/terms' },
+  { slug: 'disclaimer', title: 'DoughMath Bread Calculator Disclaimer and Baking Limits', description: 'Read DoughMath’s calculator disclaimer about bread formula math, fermentation variables, food safety, baking outcomes, and professional advice limits.', canonicalPath: '/disclaimer' },
+  { slug: 'contact', title: 'Contact DoughMath for Calculator Feedback and Formula Issues', description: 'Contact DoughMath about formula corrections, calculator feedback, accessibility issues, advertising disclosures, or GitHub project issue reports for the site.', canonicalPath: '/contact' },
+  { slug: 'affiliate-disclosure', title: 'DoughMath Affiliate Disclosure for Baking Tool Links', description: 'Read DoughMath’s affiliate disclosure for baking tool links, calculator independence, advertising separation, and how recommendations stay outside results.', canonicalPath: '/affiliate-disclosure' }
 ] as const;
 
 export const allPages = [
-  { canonicalPath: '/', priority: 1, changeFrequency: 'weekly' as const },
-  ...toolPages.map((page) => ({ canonicalPath: page.canonicalPath, priority: page.priority, changeFrequency: page.isLongTail ? 'monthly' as const : 'weekly' as const })),
-  ...legalPages.map((page) => ({ canonicalPath: page.canonicalPath, priority: page.priority, changeFrequency: 'yearly' as const }))
+  { canonicalPath: '/' },
+  ...toolPages.map((page) => ({ canonicalPath: page.canonicalPath })),
+  ...legalPages.map((page) => ({ canonicalPath: page.canonicalPath }))
 ];
 export const longTailPages = toolPages.filter((page) => page.isLongTail);
 export function getToolPage(slug: string) { return toolPages.find((page) => page.slug === slug); }

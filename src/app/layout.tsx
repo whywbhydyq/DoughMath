@@ -7,13 +7,13 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://doughmath.ymirtool.com'),
-  title: { default: 'DoughMath | Bread & Sourdough Calculators', template: '%s' },
-  description: "Calculate baker's percentages, sourdough hydration, starter feedings, dough scaling, and pizza dough weights in grams.",
+  title: { default: 'Bread & Sourdough Calculators for Formula Math | DoughMath', template: '%s' },
+  description: 'Use DoughMath to calculate baker’s percentages, sourdough hydration, starter feedings, dough scaling, and pizza dough weights locally in your browser.',
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
-    title: 'DoughMath | Bread & Sourdough Calculators',
-    description: 'Browser-only bread formula calculators for home bakers.'
+    title: 'Bread & Sourdough Calculators for Formula Math | DoughMath',
+    description: 'Use DoughMath to calculate baker’s percentages, sourdough hydration, starter feedings, dough scaling, and pizza dough weights locally in your browser.'
   },
   other: { 'google-adsense-account': 'ca-pub-1653188471819736' }
 };

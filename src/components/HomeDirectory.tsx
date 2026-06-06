@@ -2,10 +2,17 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import type { DirectoryCluster, DirectoryClusterId } from '@/lib/seoClusters';
 
-type Item = { href: string; title: string; description: string; type: 'Core calculator' | 'Preset calculator' | 'Guide' };
+type Item = {
+  href: string;
+  title: string;
+  description: string;
+  type: 'Core calculator' | 'Preset calculator' | 'Guide';
+  clusterId: DirectoryClusterId;
+};
 
-export function HomeDirectory({ items }: { items: Item[] }) {
+export function HomeDirectory({ items, clusters }: { items: Item[]; clusters: DirectoryCluster[] }) {
   const [query, setQuery] = useState('');
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -13,10 +20,9 @@ export function HomeDirectory({ items }: { items: Item[] }) {
     return items.filter((item) => `${item.title} ${item.description} ${item.type}`.toLowerCase().includes(q));
   }, [items, query]);
   const core = filtered.filter((item) => item.type === 'Core calculator');
-  const other = filtered.filter((item) => item.type !== 'Core calculator');
 
   return (
-    <section className="mt-8 space-y-6 border-t border-amber-200/70 pt-8" aria-labelledby="directory-title">
+    <section id="guides" className="mt-8 scroll-mt-24 space-y-6 border-t border-amber-200/70 pt-8" aria-labelledby="directory-title">
       <div className="grid gap-4 rounded-[2rem] border border-amber-200/80 bg-white/90 p-4 shadow-soft sm:p-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-dough-700">More calculators and guides</p>
@@ -39,11 +45,29 @@ export function HomeDirectory({ items }: { items: Item[] }) {
         </div>
       </div>
 
-      <div>
-        <h2 className="text-2xl font-black text-stone-950">Preset pages and guides</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {other.map((item) => <ToolCard item={item} key={item.href} compact />)}
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-2xl font-black text-stone-950">Calculator clusters and guides</h2>
+          <p className="mt-2 text-sm leading-6 text-stone-600">Open related pages from the same topic cluster when you need a different calculation method or a concept guide.</p>
         </div>
+        {clusters.map((cluster) => {
+          const group = filtered.filter((item) => item.type !== 'Core calculator' && item.clusterId === cluster.id);
+          if (group.length === 0) return null;
+          return (
+            <section key={cluster.id} className="rounded-[2rem] border border-amber-200/80 bg-white/70 p-4 shadow-soft sm:p-5" aria-labelledby={`${cluster.id}-title`}>
+              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                <div>
+                  <h3 id={`${cluster.id}-title`} className="text-xl font-black text-stone-950">{cluster.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-stone-600">{cluster.description}</p>
+                </div>
+                <span className="text-sm font-medium text-stone-500">{group.length} pages</span>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {group.map((item) => <ToolCard item={item} key={item.href} compact />)}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </section>
   );

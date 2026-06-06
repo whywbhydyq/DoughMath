@@ -1,4 +1,4 @@
-import type { ResultMicrocopy, ExplanationModule, PresetModule, LinkCardCopy } from '@/types/content';
+import type { ResultMicrocopy, ExplanationModule, SearchIntentModule, CalculationStepModule, PresetModule, LinkCardCopy } from '@/types/content';
 import type { ToolPageData } from '@/lib/pageData';
 
 function value(input: Record<string, number | string>, key: string, suffix = '') {
@@ -139,6 +139,92 @@ export function getExplanationModule(page: ToolPageData): ExplanationModule {
     ],
     bullets: ['Total dough = pizza count × dough ball weight.', 'Use Add to bowl for the batch.', 'Use Per dough ball for portioning.']
   }, page);
+}
+
+
+export function getSearchIntentModule(page: ToolPageData): SearchIntentModule {
+  switch (page.calculatorType) {
+    case 'bakers-percentage':
+      return {
+        eyebrow: 'Quick answer',
+        heading: 'Quick answer for baker’s percentage math',
+        quickAnswer: `${page.h1} converts flour-based percentages into gram weights and can also turn an existing gram formula back into baker’s percentages. Flour remains the 100% reference line, so hydration, salt, starter, oil, sugar, and custom ingredients stay proportional as the batch changes.`,
+        userGoal: 'Use it when you already know the flour amount or ingredient weights and need a repeatable bread formula instead of a fixed recipe.',
+        bestFor: ['bread formula scaling', 'hydration and salt checks', 'converting grams to percentages', 'turning percentages into scale weights'],
+        notFor: ['fermentation timing', 'cup-volume conversion without weighing', 'choosing flour absorption for a specific brand']
+      };
+    case 'sourdough-hydration':
+      return {
+        eyebrow: 'Quick answer',
+        heading: 'Quick answer for sourdough hydration',
+        quickAnswer: `${page.h1} separates starter into internal flour and water before calculating total hydration. That lets you compare added hydration with true formula hydration and avoid double-counting starter flour or starter water.`,
+        userGoal: 'Use it when a sourdough recipe includes starter or levain and you need the final dough hydration, salt percentage, and total dough weight.',
+        bestFor: ['total hydration including starter', 'starter flour and water split', 'added-water comparisons', 'salt percentage against total flour'],
+        notFor: ['starter maturity prediction', 'fermentation schedule design', 'food safety decisions']
+      };
+    case 'starter-feeding':
+      return {
+        eyebrow: 'Quick answer',
+        heading: 'Quick answer for starter feeding ratios',
+        quickAnswer: `${page.h1} converts a feeding ratio into seed starter, flour, and water weights. It includes the amount needed for the dough and any extra starter you want to keep after the build.`,
+        userGoal: 'Use it when you know the final starter or levain weight and want exact feeding weights for ratios like 1:1:1, 1:2:2, or 1:5:5.',
+        bestFor: ['levain build weights', 'starter ratio math', 'extra starter to keep', 'seed, flour, and water splits'],
+        notFor: ['predicting peak time', 'diagnosing starter health', 'temperature-controlled schedules']
+      };
+    case 'dough-scaling':
+      return {
+        eyebrow: 'Quick answer',
+        heading: 'Quick answer for scaling bread dough',
+        quickAnswer: `${page.h1} scales a formula from target dough weight, flour weight, or loaf count into practical ingredient weights. Starter is measured once, then split internally only for hydration and percentage checks.`,
+        userGoal: 'Use it when you need a batch size, loaf count, or final dough weight to become an Add to bowl ingredient list.',
+        bestFor: ['target dough weight scaling', 'per-loaf batch planning', 'starter-aware dough scaling', 'checking negative added water'],
+        notFor: ['recipe taste adjustments', 'oven loading schedules', 'bulk fermentation timing']
+      };
+    case 'pizza-dough':
+      return {
+        eyebrow: 'Quick answer',
+        heading: 'Quick answer for pizza dough weights',
+        quickAnswer: `${page.h1} starts with pizza count and dough ball weight, then calculates the flour, water, salt, oil, sugar, and leavening needed for the batch. It supports either yeast or sourdough starter math.`,
+        userGoal: 'Use it when you know how many dough balls you want and need the full batch formula plus per-ball planning weights.',
+        bestFor: ['pizza ball weight planning', 'hydration and salt percentages', 'yeast or sourdough options', 'per-ball dough division'],
+        notFor: ['oven temperature selection', 'fermentation time prediction', 'pizza style certification']
+      };
+  }
+}
+
+export function getCalculationStepModule(page: ToolPageData): CalculationStepModule {
+  switch (page.calculatorType) {
+    case 'bakers-percentage':
+      return {
+        eyebrow: 'Calculation sequence',
+        heading: 'Calculation steps used on this page',
+        steps: ['Set total flour as the 100% reference weight.', 'Convert each baker’s percentage into ingredient weight with flour × percentage ÷ 100.', 'Add measured ingredients to produce total dough weight.', 'When weight mode is used, divide each ingredient by flour weight to recover its baker’s percentage.']
+      };
+    case 'sourdough-hydration':
+      return {
+        eyebrow: 'Calculation sequence',
+        heading: 'Calculation steps used on this page',
+        steps: ['Split starter by starter hydration into starter flour and starter water.', 'Add starter flour to main flour to get total flour.', 'Add starter water to added water to get total water.', 'Calculate total hydration and salt percentage from the full flour base.']
+      };
+    case 'starter-feeding':
+      return {
+        eyebrow: 'Calculation sequence',
+        heading: 'Calculation steps used on this page',
+        steps: ['Add the recipe starter amount and the extra starter to keep.', 'Add the ratio parts for seed starter, flour, and water.', 'Divide final target weight by total ratio parts.', 'Multiply each part weight by its ratio to get the feed weights.']
+      };
+    case 'dough-scaling':
+      return {
+        eyebrow: 'Calculation sequence',
+        heading: 'Calculation steps used on this page',
+        steps: ['Choose whether the target is final dough weight, flour weight, or loaf count.', 'Solve total flour from the chosen target and formula percentages.', 'Split starter internally into flour and water for hydration math.', 'Return Add to bowl weights and per-loaf values without counting starter twice.']
+      };
+    case 'pizza-dough':
+      return {
+        eyebrow: 'Calculation sequence',
+        heading: 'Calculation steps used on this page',
+        steps: ['Multiply pizza count by dough ball weight to get total dough target.', 'Solve flour weight from hydration, salt, oil, sugar, and leavening percentages.', 'Calculate water, salt, oil, sugar, yeast, or starter from flour weight.', 'Show both full-batch weights and per-dough-ball planning values.']
+      };
+  }
 }
 
 export function getPresetModule(page: ToolPageData): PresetModule | undefined {

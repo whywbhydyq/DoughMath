@@ -20,3 +20,12 @@ pnpm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+# SEO skill transient cache
+.seo-cache/
+
+# TypeScript incremental metadata
+tsconfig.tsbuildinfo
+
+# Internal audit/prompt artifacts; keep generated evidence outside the public product tree.
+docs/internal/

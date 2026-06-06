@@ -14,7 +14,8 @@ import {
   type Warn
 } from '@/lib/bakingMath';
 import { trackCalculatorEvent } from '@/lib/analytics';
-import { setCalculatorUrlState } from '@/lib/urlState';
+import { copyText } from '@/lib/clipboard';
+import { readCustomQueryParam, setCalculatorUrlState } from '@/lib/urlState';
 import { PrintableRecipeCard } from '@/components/result/PrintableRecipeCard';
 import { formatWeight, fromGrams, toGrams, type WeightUnit } from '@/lib/units';
 import type { CalculatorResult, CalculatorType, CustomIngredientInput, FlourBlendItem } from '@/types/baking';
@@ -116,7 +117,7 @@ function sanitizeCustomIngredient(input: Partial<CustomIngredientInput> & { id?:
 }
 
 function readCustomIngredients(params: URLSearchParams): CustomIngredientForm[] {
-  const raw = params.get('custom');
+  const raw = readCustomQueryParam(params);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -375,9 +376,9 @@ function CopyButtons({ text, slug, reset }: { text: string; slug: string; reset:
   };
   return (
     <div className="no-print flex flex-wrap gap-3 rounded-3xl border border-amber-200/70 bg-white/90 p-4 shadow-soft">
-      <button className="min-h-11 rounded-xl bg-dough-900 px-5 py-2 font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-hover" onClick={async () => { await navigator.clipboard.writeText(text); trackCalculatorEvent('copy_result_clicked', slug); trackResultUse('copy'); setStatus('Result copied.'); }}>Copy result</button>
+      <button className="min-h-11 rounded-xl bg-dough-900 px-5 py-2 font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-hover" onClick={async () => { const copied = await copyText(text); if (copied) { trackCalculatorEvent('copy_result_clicked', slug); trackResultUse('copy'); setStatus('Result copied.'); } else { setStatus('Copy failed. Select and copy the result manually.'); } }}>Copy result</button>
       <button className="min-h-11 rounded-xl border border-dough-200 bg-white px-5 py-2 font-semibold text-dough-900 transition hover:bg-amber-50" onClick={() => { trackCalculatorEvent('print_clicked', slug); trackResultUse('print'); window.print(); }}>Print recipe card</button>
-      <button className="min-h-11 rounded-xl border border-dough-200 bg-white px-5 py-2 font-semibold text-dough-900 transition hover:bg-amber-50" onClick={async () => { await navigator.clipboard.writeText(location.href); trackCalculatorEvent('share_url_copied', slug); trackResultUse('share'); setStatus('Share URL copied.'); }}>Copy share URL</button>
+      <button className="min-h-11 rounded-xl border border-dough-200 bg-white px-5 py-2 font-semibold text-dough-900 transition hover:bg-amber-50" onClick={async () => { const copied = await copyText(location.href); if (copied) { trackCalculatorEvent('share_url_copied', slug); trackResultUse('share'); setStatus('Share URL copied.'); } else { setStatus('Copy failed. Select and copy the URL manually.'); } }}>Copy share URL</button>
       <button className="min-h-11 rounded-xl border border-red-200 bg-red-50 px-5 py-2 font-semibold text-red-800 transition hover:bg-red-100" onClick={() => { reset(); setStatus('Inputs reset.'); }}>Reset</button>
       <span className="self-center text-sm font-medium text-stone-500" role="status">{status}</span>
     </div>

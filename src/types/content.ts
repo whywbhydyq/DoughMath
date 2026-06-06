@@ -16,6 +16,21 @@ export type ExplanationModule = {
   bullets: string[];
 };
 
+export type SearchIntentModule = {
+  eyebrow: string;
+  heading: string;
+  quickAnswer: string;
+  userGoal: string;
+  bestFor: string[];
+  notFor: string[];
+};
+
+export type CalculationStepModule = {
+  eyebrow: string;
+  heading: string;
+  steps: string[];
+};
+
 export type PresetModule = {
   eyebrow: string;
   heading: string;

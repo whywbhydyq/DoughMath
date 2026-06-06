@@ -5,9 +5,9 @@ import { Suspense } from 'react';
 import Calculator from '@/components/Calculator';
 import { AdSlot } from '@/components/layout/AdSlot';
 import { AffiliatePanel } from '@/components/layout/AffiliatePanel';
-import { BreadcrumbJsonLd, FAQPageJsonLd, WebApplicationJsonLd } from '@/components/seo/JsonLd';
+import { BreadcrumbJsonLd, WebApplicationJsonLd } from '@/components/seo/JsonLd';
 import { TrackedFaq } from '@/components/TrackedInteractions';
-import { getExplanationModule, getLinkCardCopy, getPresetModule, getResultMicrocopy } from '@/lib/contentModules';
+import { getCalculationStepModule, getExplanationModule, getLinkCardCopy, getPresetModule, getResultMicrocopy, getSearchIntentModule } from '@/lib/contentModules';
 import { BASE_URL, getToolPage, getToolPageOrThrow, longTailPages, type ToolPageData } from '@/lib/pageData';
 
 export function generateStaticParams() {
@@ -46,11 +46,86 @@ function ExplanationModule({ page }: { page: ToolPageData }) {
   );
 }
 
+
+function SearchIntentModule({ page }: { page: ToolPageData }) {
+  const module = getSearchIntentModule(page);
+  return (
+    <section id="quick-answer" className="rounded-[2rem] border border-dough-200/80 bg-dough-50/70 p-5 shadow-soft sm:p-7">
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">{module.eyebrow}</p>
+      <h2 className="mt-1 text-2xl font-bold text-stone-950">{module.heading}</h2>
+      <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-3 text-sm leading-7 text-stone-700 sm:text-base">
+          <p>{module.quickAnswer}</p>
+          <p>{module.userGoal}</p>
+        </div>
+        <div className="grid gap-3 text-sm leading-6 text-stone-700">
+          <div className="rounded-3xl border border-white/80 bg-white p-4 shadow-soft">
+            <h3 className="font-bold text-stone-950">Best for</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {module.bestFor.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+          <div className="rounded-3xl border border-white/80 bg-white p-4 shadow-soft">
+            <h3 className="font-bold text-stone-950">Not for</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {module.notFor.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CalculationStepsModule({ page }: { page: ToolPageData }) {
+  const module = getCalculationStepModule(page);
+  return (
+    <section id="calculation-steps">
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">{module.eyebrow}</p>
+      <h2 className="mt-1 text-2xl font-bold text-stone-950">{module.heading}</h2>
+      <ol className="mt-4 grid gap-3 md:grid-cols-2">
+        {module.steps.map((step, index) => (
+          <li key={step} className="rounded-2xl border border-stone-200 bg-white p-4 text-sm leading-6 text-stone-700 shadow-soft">
+            <span className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-stone-950 text-xs font-black text-white">{index + 1}</span>
+            <p>{step}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function PageJumpLinks({ compact = false }: { compact?: boolean }) {
+  const links = compact ? [
+    ['#calculator', 'Calculator'],
+    ['#preset', 'Preset'],
+    ['#example', 'Example'],
+    ['#faq', 'FAQ'],
+    ['#related', 'Related']
+  ] : [
+    ['#calculator', 'Calculator'],
+    ['#quick-answer', 'Quick answer'],
+    ['#example', 'Example'],
+    ['#formula', 'Formula'],
+    ['#calculation-steps', 'Steps'],
+    ['#checks', 'Checks'],
+    ['#faq', 'FAQ'],
+    ['#related', 'Related']
+  ];
+  return (
+    <nav aria-label="Page sections" className="no-print mt-4 flex flex-wrap gap-2 text-sm font-bold">
+      {links.map(([href, label]) => (
+        <Link key={href} href={href} className="rounded-full border border-amber-200 bg-white/80 px-3 py-1.5 text-stone-700 transition hover:border-dough-300 hover:text-dough-900">{label}</Link>
+      ))}
+    </nav>
+  );
+}
+
 function PresetModule({ page }: { page: ToolPageData }) {
   const preset = getPresetModule(page);
   if (!preset) return null;
   return (
-    <section className="rounded-[2rem] border border-dough-200/80 bg-dough-50/70 p-5 shadow-soft sm:p-7">
+    <section id="preset" className="scroll-mt-24 rounded-[2rem] border border-dough-200/80 bg-dough-50/70 p-5 shadow-soft sm:p-7">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">{preset.eyebrow}</p>
       <div className="mt-1 grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div>
@@ -75,7 +150,7 @@ function PresetModule({ page }: { page: ToolPageData }) {
 
 function RelatedToolCards({ page, related }: { page: ToolPageData; related: ToolPageData[] }) {
   return (
-    <section>
+    <section id="related" className="scroll-mt-24">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">Related calculators and presets</p>
       <h2 className="mt-1 text-2xl font-bold text-stone-950">Next calculators and presets</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -100,12 +175,12 @@ export function ToolPage({ slug }: { slug: string }) {
   if (!page) notFound();
   const related = page.relatedSlugs.map(getToolPageOrThrow);
   const resultMicrocopy = getResultMicrocopy(page);
-  const visibleFaqs = page.faqs.slice(0, 3);
+  const visibleFaqs = page.isLongTail ? page.faqs.slice(0, 3) : page.faqs;
+  const isCoreCalculator = !page.isLongTail;
   return (
     <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 lg:px-6">
       <BreadcrumbJsonLd page={page} />
-      <WebApplicationJsonLd page={page} />
-      <FAQPageJsonLd page={page} faqs={visibleFaqs} />
+      {isCoreCalculator ? <WebApplicationJsonLd page={page} /> : null}
       <section className="rounded-[2rem] border border-amber-200/80 bg-white/80 p-5 shadow-soft sm:p-7">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div>
@@ -120,6 +195,7 @@ export function ToolPage({ slug }: { slug: string }) {
           </div>
         </div>
       </section>
+      <PageJumpLinks compact={page.isLongTail} />
 
       <div id="calculator" className="mt-5 scroll-mt-24">
         <Suspense fallback={<p className="rounded-2xl border bg-white p-5">Loading calculator…</p>}>
@@ -129,9 +205,10 @@ export function ToolPage({ slug }: { slug: string }) {
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <article className="no-print space-y-8 rounded-[2rem] border border-amber-200/80 bg-white p-5 shadow-soft sm:p-7">
-          <ExplanationModule page={page} />
+          {isCoreCalculator ? <SearchIntentModule page={page} /> : null}
+          {isCoreCalculator ? <ExplanationModule page={page} /> : null}
           <PresetModule page={page} />
-          <section>
+          <section id="example" className="scroll-mt-24">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">Example</p>
             <h2 className="mt-1 text-2xl font-bold text-stone-950">Example calculation</h2>
             <p className="mt-2 text-sm leading-6 text-stone-600">These are illustrative inputs for the calculator on this page. Change the fields above to make the result match your own dough.</p>
@@ -145,21 +222,26 @@ export function ToolPage({ slug }: { slug: string }) {
               ))}
             </div>
           </section>
-          <section>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">Formula</p>
-            <h2 className="mt-1 text-2xl font-bold text-stone-950">How this calculator works</h2>
-            <ul className="mt-4 grid gap-3 text-stone-650 md:grid-cols-2">
-              {page.formulaNotes.map((note) => <li key={note} className="rounded-2xl bg-amber-50/70 p-4 text-sm leading-6 text-stone-700">{note}</li>)}
-            </ul>
-          </section>
-          <section>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">Common mistakes</p>
-            <h2 className="mt-1 text-2xl font-bold text-stone-950">What to check before baking</h2>
-            <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-stone-700">
-              {page.commonMistakes.slice(0, 4).map((mistake) => <li key={mistake}>{mistake}</li>)}
-            </ul>
-          </section>
-          <section>
+          {isCoreCalculator ? (
+            <>
+              <section id="formula" className="scroll-mt-24">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">Formula</p>
+                <h2 className="mt-1 text-2xl font-bold text-stone-950">How this calculator works</h2>
+                <ul className="mt-4 grid gap-3 text-stone-650 md:grid-cols-2">
+                  {page.formulaNotes.map((note) => <li key={note} className="rounded-2xl bg-amber-50/70 p-4 text-sm leading-6 text-stone-700">{note}</li>)}
+                </ul>
+              </section>
+              <CalculationStepsModule page={page} />
+              <section id="checks" className="scroll-mt-24">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">Common mistakes</p>
+                <h2 className="mt-1 text-2xl font-bold text-stone-950">What to check before baking</h2>
+                <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-stone-700">
+                  {page.commonMistakes.slice(0, 4).map((mistake) => <li key={mistake}>{mistake}</li>)}
+                </ul>
+              </section>
+            </>
+          ) : null}
+          <section id="faq" className="scroll-mt-24">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-dough-700">FAQ</p>
             <h2 className="mt-1 text-2xl font-bold text-stone-950">Questions</h2>
             <div className="mt-4 divide-y divide-stone-100 rounded-3xl border border-stone-200">

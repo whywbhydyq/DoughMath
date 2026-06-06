@@ -97,7 +97,7 @@ const calculatorQueryKeys: Record<CalculatorType, readonly QueryKey[]> = {
   ]
 };
 
-const MAX_CUSTOM_QUERY_LENGTH = 1600;
+export const MAX_CUSTOM_QUERY_LENGTH = 1600;
 
 export function readNumberParam(params: URLSearchParams, key: string, fallback: number, min = 0) {
   const raw = params.get(key);
@@ -144,6 +144,13 @@ export function buildCalculatorShareUrl(
   });
   const query = params.toString();
   return query ? `${pathname}?${query}` : pathname;
+}
+
+
+export function readCustomQueryParam(params: URLSearchParams) {
+  const raw = params.get('custom');
+  if (!raw || raw.length > MAX_CUSTOM_QUERY_LENGTH) return null;
+  return raw;
 }
 
 export const parseNumberParam = readNumberParam;

@@ -12,6 +12,7 @@ import {
   pct
 } from '@/lib/bakingMath';
 import { trackCalculatorEvent } from '@/lib/analytics';
+import { copyText } from '@/lib/clipboard';
 import { buildCalculatorShareUrl } from '@/lib/urlState';
 import type { CalculatorResult, Ingredient } from '@/types/baking';
 import { HomeMiniFields } from './HomeMiniFields';
@@ -116,19 +117,8 @@ function isModeStateDefault<TMode extends HomeModeId>(mode: TMode, value: HomeFo
 }
 
 async function copyTextToClipboard(text: string) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.setAttribute('readonly', '');
-  textarea.style.position = 'fixed';
-  textarea.style.top = '-9999px';
-  document.body.appendChild(textarea);
-  textarea.select();
-  document.execCommand('copy');
-  document.body.removeChild(textarea);
+  const copied = await copyText(text);
+  if (!copied) throw new Error('Clipboard copy failed.');
 }
 
 function calculateHomeResult(mode: HomeModeId, state: HomeFormState): { result?: CalculatorResult; error?: string } {

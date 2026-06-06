@@ -18,22 +18,64 @@ export const pct = (value: number) => `${round(value)}%`;
 export const grams = (value: number) => `${Math.round(value)} g`;
 
 const EPSILON = 0.000001;
+const MAX_WEIGHT_GRAMS = 1_000_000;
+const MAX_PERCENTAGE = 1000;
+const MAX_UNIT_COUNT = 1000;
+const MAX_CUSTOM_INGREDIENTS = 8;
+const MAX_FLOUR_BLEND_ITEMS = 8;
+const MAX_INGREDIENT_NAME_LENGTH = 80;
 
-function assertNonNegative(name: string, value: number) {
-  if (!Number.isFinite(value) || value < 0) throw new Error(`${name} cannot be negative.`);
+function assertAtMost(name: string, value: number, max: number) {
+  if (value > max) throw new Error(`${name} must be ${max} or less.`);
 }
 
-function assertPositive(name: string, value: number) {
+function assertNonNegative(name: string, value: number, max = Number.POSITIVE_INFINITY) {
+  if (!Number.isFinite(value) || value < 0) throw new Error(`${name} cannot be negative.`);
+  assertAtMost(name, value, max);
+}
+
+function assertPositive(name: string, value: number, max = Number.POSITIVE_INFINITY) {
   if (!Number.isFinite(value) || value <= 0) throw new Error(`${name} must be greater than zero.`);
+  assertAtMost(name, value, max);
+}
+
+function assertPercentage(name: string, value: number | undefined, required = true) {
+  if (value === undefined) {
+    if (required) throw new Error(`${name} is required.`);
+    return 0;
+  }
+  assertNonNegative(name, value, MAX_PERCENTAGE);
+  return value;
+}
+
+function assertWeight(name: string, value: number | undefined, required = true) {
+  if (value === undefined) {
+    if (required) throw new Error(`${name} is required.`);
+    return 0;
+  }
+  assertNonNegative(name, value, MAX_WEIGHT_GRAMS);
+  return value;
 }
 
 function optionalPct(value?: number) {
-  return Number.isFinite(value ?? 0) ? value ?? 0 : 0;
+  return assertPercentage('optional percentage', value, false);
+}
+
+function assertIngredientName(name: string) {
+  if (name.length > MAX_INGREDIENT_NAME_LENGTH) {
+    throw new Error(`Ingredient names must be ${MAX_INGREDIENT_NAME_LENGTH} characters or less.`);
+  }
+}
+
+function validateCustomIngredients(items?: CustomIngredientInput[]) {
+  if ((items ?? []).length > MAX_CUSTOM_INGREDIENTS) {
+    throw new Error(`Use ${MAX_CUSTOM_INGREDIENTS} custom ingredients or fewer.`);
+  }
 }
 
 export function splitStarter(starterWeightGrams: number, starterHydrationPct: number): StarterSplit {
-  assertNonNegative('starter weight', starterWeightGrams);
-  assertNonNegative('starter hydration', starterHydrationPct);
+  assertNonNegative('starter weight', starterWeightGrams, MAX_WEIGHT_GRAMS);
+  assertPercentage('starter hydration', starterHydrationPct);
   if (starterWeightGrams === 0) {
     return { starterWeightGrams: 0, flourGrams: 0, waterGrams: 0, hydrationPct: starterHydrationPct };
   }
@@ -42,8 +84,16 @@ export function splitStarter(starterWeightGrams: number, starterHydrationPct: nu
 }
 
 function validateFlourBlend(blend?: FlourBlendItem[]) {
+  if ((blend ?? []).length > MAX_FLOUR_BLEND_ITEMS) {
+    throw new Error(`Use ${MAX_FLOUR_BLEND_ITEMS} flour blend rows or fewer.`);
+  }
   const cleaned = (blend ?? [])
-    .map((item) => ({ name: item.name.trim() || 'Flour', percent: item.percent }))
+    .map((item) => {
+      const name = item.name.trim() || 'Flour';
+      assertIngredientName(name);
+      assertPercentage('flour blend percentage', item.percent);
+      return { name, percent: item.percent };
+    })
     .filter((item) => item.percent > 0);
   if (!cleaned.length) return [{ name: 'Bread flour', percent: 100 }];
   const total = cleaned.reduce((sum, item) => sum + item.percent, 0);
@@ -85,14 +135,17 @@ function addedFlourBlendItems(totalFlourGrams: number, starterFlourGrams: number
 
 function normalizeCustomIngredient(input: CustomIngredientInput, flourWeightGrams: number): Ingredient | undefined {
   const name = input.name.trim() || 'Custom ingredient';
-  const percentage = input.lockMode === 'weight'
-    ? (input.weightGrams ?? 0) / flourWeightGrams * 100
-    : (input.percentage ?? 0);
-  const weightGrams = input.lockMode === 'weight'
-    ? (input.weightGrams ?? 0)
+  assertIngredientName(name);
+  const lockMode = input.lockMode === 'weight' ? 'weight' : 'percentage';
+  const percentage = lockMode === 'weight'
+    ? assertWeight('custom ingredient weight', input.weightGrams, false) / flourWeightGrams * 100
+    : assertPercentage('custom ingredient percentage', input.percentage, false);
+  const weightGrams = lockMode === 'weight'
+    ? assertWeight('custom ingredient weight', input.weightGrams, false)
     : flourWeightGrams * percentage / 100;
-  if (!Number.isFinite(weightGrams) || weightGrams <= EPSILON) return undefined;
-  return { name, role: 'other', weightGrams, bakerPercentage: percentage, note: input.lockMode === 'weight' ? 'Custom; weight locked' : 'Custom; percentage locked' };
+  if (weightGrams <= EPSILON) return undefined;
+  assertNonNegative('custom ingredient calculated weight', weightGrams, MAX_WEIGHT_GRAMS);
+  return { name, role: 'other', weightGrams, bakerPercentage: percentage, note: lockMode === 'weight' ? 'Custom; weight locked' : 'Custom; percentage locked' };
 }
 
 function warnings(input: {
@@ -127,7 +180,7 @@ function sum(items: Ingredient[]) {
 }
 
 function perUnit(items: Ingredient[], count: number): Ingredient[] {
-  assertPositive('unit count', count);
+  assertPositive('unit count', count, MAX_UNIT_COUNT);
   return items.map((item) => ({ ...item, weightGrams: item.weightGrams / count }));
 }
 
@@ -147,7 +200,13 @@ export function calculateBakersPercentage(input: {
   customIngredients?: CustomIngredientInput[];
   flourBlend?: FlourBlendItem[];
 }): CalculatorResult {
-  assertPositive('flour', input.flourWeightGrams);
+  assertPositive('flour', input.flourWeightGrams, MAX_WEIGHT_GRAMS);
+  assertPercentage('hydration', input.hydrationPct);
+  assertPercentage('starter', input.starterPct);
+  assertPercentage('salt', input.saltPct);
+  assertPercentage('oil', input.oilPct, false);
+  assertPercentage('sugar', input.sugarPct, false);
+  validateCustomIngredients(input.customIngredients);
   const flour = input.flourWeightGrams;
   const addToBowl: Ingredient[] = [
     ...flourBlendItems(flour, input.flourBlend),
@@ -182,7 +241,13 @@ export function calculateBakersPercentagesFromWeights(input: {
   customIngredients?: CustomIngredientInput[];
   flourBlend?: FlourBlendItem[];
 }): CalculatorResult {
-  assertPositive('flour', input.flourWeightGrams);
+  assertPositive('flour', input.flourWeightGrams, MAX_WEIGHT_GRAMS);
+  assertWeight('water', input.waterWeightGrams);
+  assertWeight('starter', input.starterWeightGrams);
+  assertWeight('salt', input.saltWeightGrams);
+  assertWeight('oil', input.oilWeightGrams, false);
+  assertWeight('sugar', input.sugarWeightGrams, false);
+  validateCustomIngredients(input.customIngredients);
   const flour = input.flourWeightGrams;
   const add = (name: string, weightGrams: number, note: string, role: Ingredient['role']): Ingredient => ({ name, role, weightGrams, bakerPercentage: weightGrams / flour * 100, note });
   const addToBowl = [
@@ -219,9 +284,10 @@ export function calculateSourdoughHydration(input: {
   saltWeightGrams: number;
   flourBlend?: FlourBlendItem[];
 }): CalculatorResult {
-  assertPositive('main flour', input.mainFlourGrams);
-  assertNonNegative('added water', input.addedWaterGrams);
-  assertNonNegative('salt', input.saltWeightGrams);
+  assertPositive('main flour', input.mainFlourGrams, MAX_WEIGHT_GRAMS);
+  assertNonNegative('added water', input.addedWaterGrams, MAX_WEIGHT_GRAMS);
+  assertNonNegative('salt', input.saltWeightGrams, MAX_WEIGHT_GRAMS);
+  assertPercentage('starter hydration', input.starterHydrationPct);
   const starterSplit = splitStarter(input.starterWeightGrams, input.starterHydrationPct);
   const totalFlourGrams = input.mainFlourGrams + starterSplit.flourGrams;
   const totalWaterGrams = input.addedWaterGrams + starterSplit.waterGrams;
@@ -248,11 +314,11 @@ export function calculateSourdoughHydration(input: {
 }
 
 export function calculateStarterFeeding(input: StarterFeedingInput): CalculatorResult {
-  assertPositive('target starter', input.targetStarterWeightGrams);
-  assertPositive('seed part', input.seedPart);
-  assertPositive('flour part', input.flourPart);
-  assertPositive('water part', input.waterPart);
-  assertNonNegative('extra starter', input.extraGrams ?? 0);
+  assertPositive('target starter', input.targetStarterWeightGrams, MAX_WEIGHT_GRAMS);
+  assertPositive('seed part', input.seedPart, MAX_UNIT_COUNT);
+  assertPositive('flour part', input.flourPart, MAX_UNIT_COUNT);
+  assertPositive('water part', input.waterPart, MAX_UNIT_COUNT);
+  assertNonNegative('extra starter', input.extraGrams ?? 0, MAX_WEIGHT_GRAMS);
   const finalTarget = input.targetStarterWeightGrams + (input.extraGrams ?? 0);
   const part = finalTarget / (input.seedPart + input.flourPart + input.waterPart);
   const seedStarterGrams = part * input.seedPart;
@@ -293,7 +359,15 @@ function calculateSourdoughFormulaFromTotalFlour(args: {
   unitCount?: number;
   perUnitLabel?: string;
 }): CalculatorResult {
-  assertPositive('total flour', args.totalFlourGrams);
+  assertPositive('total flour', args.totalFlourGrams, MAX_WEIGHT_GRAMS);
+  assertPercentage('hydration', args.hydrationPct);
+  assertPercentage('starter', args.starterPct);
+  assertPercentage('starter hydration', args.starterHydrationPct);
+  assertPercentage('salt', args.saltPct);
+  assertPercentage('oil', args.oilPct, false);
+  assertPercentage('sugar', args.sugarPct, false);
+  assertPercentage('yeast', args.yeastPct, false);
+  if (args.unitCount !== undefined) assertPositive('unit count', args.unitCount, MAX_UNIT_COUNT);
   const totalFlourGrams = args.totalFlourGrams;
   const totalWaterGrams = totalFlourGrams * args.hydrationPct / 100;
   const starterWeightGrams = totalFlourGrams * args.starterPct / 100;
@@ -339,6 +413,16 @@ function calculateSourdoughFormulaFromTotalFlour(args: {
 }
 
 export function calculateDoughScaling(input: DoughScalingInput): CalculatorResult {
+  assertPercentage('hydration', input.hydrationPct);
+  assertPercentage('starter', input.starterPct);
+  assertPercentage('starter hydration', input.starterHydrationPct);
+  assertPercentage('salt', input.saltPct);
+  assertPercentage('oil', input.oilPct, false);
+  assertPercentage('sugar', input.sugarPct, false);
+  assertPercentage('yeast', input.yeastPct, false);
+  assertPositive('loaf count', input.loafCount, MAX_UNIT_COUNT);
+  if (input.mode === 'by-flour-weight') assertPositive('flour', input.flourWeightGrams ?? 0, MAX_WEIGHT_GRAMS);
+  else assertPositive('target dough weight', input.targetDoughWeightGrams ?? 0, MAX_WEIGHT_GRAMS);
   const totalFlourGrams = input.mode === 'by-flour-weight'
     ? input.flourWeightGrams ?? 0
     : (input.targetDoughWeightGrams ?? 0) / (1 + input.hydrationPct / 100 + input.saltPct / 100 + optionalPct(input.oilPct) / 100 + optionalPct(input.sugarPct) / 100 + optionalPct(input.yeastPct) / 100);
@@ -359,8 +443,17 @@ export function calculateDoughScaling(input: DoughScalingInput): CalculatorResul
 }
 
 export function calculatePizzaDough(input: PizzaDoughInput): CalculatorResult {
-  assertPositive('pizza count', input.pizzaCount);
-  assertPositive('dough ball weight', input.ballWeightGrams);
+  assertPositive('pizza count', input.pizzaCount, MAX_UNIT_COUNT);
+  assertPositive('dough ball weight', input.ballWeightGrams, MAX_WEIGHT_GRAMS);
+  assertPercentage('hydration', input.hydrationPct);
+  assertPercentage('salt', input.saltPct);
+  assertPercentage('oil', input.oilPct, false);
+  assertPercentage('sugar', input.sugarPct, false);
+  assertPercentage('yeast', input.yeastPct, false);
+  if (input.leaveningType === 'sourdough') {
+    assertPercentage('starter', input.starterPct ?? 20);
+    assertPercentage('starter hydration', input.starterHydrationPct ?? 100);
+  }
   const target = input.pizzaCount * input.ballWeightGrams;
   if (input.leaveningType === 'sourdough') {
     const totalFlourGrams = target / (1 + input.hydrationPct / 100 + input.saltPct / 100 + optionalPct(input.oilPct) / 100 + optionalPct(input.sugarPct) / 100);
