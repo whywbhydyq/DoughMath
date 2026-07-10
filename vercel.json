@@ -1,0 +1,4 @@
+{
+  "ignoreCommand": "node scripts/skip-old-vercel-builds.mjs",
+  "installCommand": "npm ci --prefer-offline --no-audit --fund=false"
+}
