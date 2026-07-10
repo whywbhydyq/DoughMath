@@ -1,7 +1,0 @@
-export const HYDRATION_LOW_WARNING = 40;
-export const HYDRATION_HIGH_WARNING = 100;
-export const SALT_HIGH_WARNING = 4;
-export const STARTER_HIGH_WARNING = 60;
-export const LARGE_BATCH_GRAMS = 10000;
-export const SMALL_PIZZA_BALL_GRAMS = 120;
-export const LARGE_PIZZA_BALL_GRAMS = 500;
