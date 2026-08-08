@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> **项目已退役 / Archived**
+>
+> 此工具已于 2026-08-08 停止维护和服务。原生产域名现返回 HTTP 410。请访问 https://ymirtool.com/。
+
 # DoughMath
 
 DoughMath is a mobile-first English baking calculator site for baker's percentages, sourdough hydration, starter feeding, dough scaling, and pizza dough formulas.
